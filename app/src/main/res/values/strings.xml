@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Multi-language phrase keys -->
+<resources>
+    <string name="app_name">EVAC</string>
+    <string name="tab_sos">SOS</string>
+    <string name="tab_bulletins">Bulletins</string>
+    <string name="tab_map">Map</string>
+    <string name="sos_medical">Medical Emergency</string>
+    <string name="sos_trapped">Trapped / Stuck</string>
+    <string name="sos_fire">Fire</string>
+    <string name="sos_general">General Help</string>
+    <string name="people_count_label">People Count</string>
+    <string name="note_hint">Additional notes…</string>
+    <string name="send_sos">SEND SOS</string>
+    <string name="pin_hint">Enter Responder PIN</string>
+    <string name="login">Login</string>
+    <string name="no_bulletins">No bulletins yet</string>
+</resources>

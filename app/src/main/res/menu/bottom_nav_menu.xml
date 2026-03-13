@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SOS | Bulletins | Map -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_sos"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:title="@string/tab_sos" />
+    <item
+        android:id="@+id/nav_bulletins"
+        android:icon="@android:drawable/ic_dialog_info"
+        android:title="@string/tab_bulletins" />
+    <item
+        android:id="@+id/nav_map"
+        android:icon="@android:drawable/ic_dialog_map"
+        android:title="@string/tab_map" />
+</menu>

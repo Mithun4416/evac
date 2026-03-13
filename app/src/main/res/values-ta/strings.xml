@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil -->
+<resources>
+    <string name="app_name">EVAC</string>
+    <string name="tab_sos">SOS</string>
+    <string name="tab_bulletins">புல்லட்டின்கள்</string>
+    <string name="tab_map">வரைபடம்</string>
+    <string name="sos_medical">மருத்துவ அவசரநிலை</string>
+    <string name="sos_trapped">சிக்கிக்கொண்டது</string>
+    <string name="sos_fire">தீ</string>
+    <string name="sos_general">பொது உதவி</string>
+    <string name="send_sos">SOS அனுப்பு</string>
+</resources>

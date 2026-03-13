@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Navigation component graph -->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_sos">
+
+    <fragment
+        android:id="@+id/nav_sos"
+        android:name="com.evac.app.ui.citizen.CitizenFragment"
+        android:label="SOS" />
+
+    <fragment
+        android:id="@+id/nav_bulletins"
+        android:name="com.evac.app.ui.bulletin.BulletinFragment"
+        android:label="Bulletins" />
+
+    <fragment
+        android:id="@+id/nav_map"
+        android:name="com.evac.app.ui.map.MapFragment"
+        android:label="Map" />
+
+</navigation>

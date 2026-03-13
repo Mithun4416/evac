@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Telugu -->
+<resources>
+    <string name="app_name">EVAC</string>
+    <string name="tab_sos">SOS</string>
+    <string name="tab_bulletins">బులెటిన్లు</string>
+    <string name="tab_map">మ్యాప్</string>
+    <string name="sos_medical">వైద్య అత్యవసర పరిస్థితి</string>
+    <string name="sos_trapped">చిక్కుకుపోయిన</string>
+    <string name="sos_fire">అగ్ని</string>
+    <string name="sos_general">సాధారణ సహాయం</string>
+    <string name="send_sos">SOS పంపండి</string>
+</resources>

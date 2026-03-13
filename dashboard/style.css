@@ -1,0 +1,15 @@
+/* Dashboard styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+}
+
+#map {
+    width: 100%;
+    height: 80vh;
+}

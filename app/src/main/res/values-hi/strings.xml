@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi -->
+<resources>
+    <string name="app_name">EVAC</string>
+    <string name="tab_sos">SOS</string>
+    <string name="tab_bulletins">बुलेटिन</string>
+    <string name="tab_map">नक्शा</string>
+    <string name="sos_medical">चिकित्सा आपातकाल</string>
+    <string name="sos_trapped">फंसा हुआ</string>
+    <string name="sos_fire">आग</string>
+    <string name="sos_general">सामान्य सहायता</string>
+    <string name="send_sos">SOS भेजें</string>
+</resources>
