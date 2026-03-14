@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#1a1a2e">
@@ -12,7 +12,46 @@
         android:padding="20dp"
         android:gravity="center_horizontal">
 
-        <!-- Header -->
+        <!-- ═══ PROXIMITY ALERT BANNER (hidden by default) ═══ -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/proximityBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="#CC331a00"
+            app:cardCornerRadius="10dp"
+            app:strokeColor="#FFaa44"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="14dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/proximityText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="⚠️ Survivor nearby"
+                    android:textColor="#FFcc88"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp"/>
+
+                <TextView
+                    android:id="@+id/proximityDismiss"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✕"
+                    android:textColor="#FFcc88"
+                    android:textSize="20sp"
+                    android:padding="8dp"/>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -21,6 +60,7 @@
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
+
 
         <TextView
             android:id="@+id/tv_status"
