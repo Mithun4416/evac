@@ -1,22 +1,47 @@
 package com.evac.app.ui.citizen
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.NumberPicker
+import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.evac.app.R
 import com.evac.app.util.Phrases
+import com.evac.app.util.ProximityAlertManager
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
 
 class CitizenFragment : Fragment() {
 
     private val viewModel: CitizenViewModel by viewModels()
     private var selectedPhraseKey: String? = null
+
+    // ── Proximity alert banner views ───────────────────────────────────────────
+    private var proximityBanner: MaterialCardView? = null
+    private var proximityText: TextView? = null
+
+    // ── BroadcastReceiver for nearby SOS events ───────────────────────────────
+    private val proximityReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != ProximityAlertManager.ACTION_NEARBY_SOS) return
+
+            val distanceM = intent.getFloatExtra(ProximityAlertManager.EXTRA_DISTANCE_M, 0f)
+            val status    = intent.getStringExtra(ProximityAlertManager.EXTRA_SOS_STATUS) ?: "UNKNOWN"
+            val people    = intent.getIntExtra(ProximityAlertManager.EXTRA_PEOPLE_COUNT, 1)
+
+            showProximityBanner(distanceM, status, people)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -28,6 +53,13 @@ class CitizenFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // ── Proximity banner wiring ────────────────────────────────────────────
+        proximityBanner = view.findViewById(R.id.proximityBanner)
+        proximityText   = view.findViewById(R.id.proximityText)
+        view.findViewById<View>(R.id.proximityDismiss)?.setOnClickListener {
+            proximityBanner?.visibility = View.GONE
+        }
 
         // People picker
         val peoplePicker = view.findViewById<NumberPicker>(R.id.peoplePicker)
@@ -55,6 +87,44 @@ class CitizenFragment : Fragment() {
         // Quick phrases
         setupPhrases(view, etNote)
     }
+
+    override fun onStart() {
+        super.onStart()
+        // Register receiver for nearby SOS broadcasts
+        val filter = IntentFilter(ProximityAlertManager.ACTION_NEARBY_SOS)
+        ContextCompat.registerReceiver(
+            requireContext(), proximityReceiver, filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    override fun onStop() {
+        super.onStop()
+        requireContext().unregisterReceiver(proximityReceiver)
+    }
+
+    // ── Show/hide proximity banner ─────────────────────────────────────────────
+
+    private fun showProximityBanner(distanceM: Float, status: String, people: Int) {
+        val distStr = if (distanceM < 1000f) "${distanceM.toInt()}m" else "${"%.1f".format(distanceM / 1000)}km"
+        val emoji = when (status) {
+            "MEDICAL" -> "🔴"
+            "TRAPPED" -> "🟠"
+            "HAZARD"  -> "🟡"
+            "SAFE"    -> "🟢"
+            else      -> "⚠️"
+        }
+        proximityText?.text =
+            "$emoji Survivor ${distStr} away — $status · $people person${if (people > 1) "s" else ""}\nTap × to dismiss"
+        proximityBanner?.visibility = View.VISIBLE
+
+        // Auto-dismiss after 30 seconds
+        proximityBanner?.postDelayed({
+            proximityBanner?.visibility = View.GONE
+        }, 30_000)
+    }
+
+    // ── SOS submission ─────────────────────────────────────────────────────────
 
     private fun submitSos(
         status: String,

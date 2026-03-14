@@ -1,15 +1,20 @@
 package com.evac.app.mesh
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.evac.app.R
 import com.evac.app.gateway.GatewayManager
+import com.google.android.gms.location.*
 import kotlinx.coroutines.*
 
 class MeshService : Service() {
@@ -20,6 +25,17 @@ class MeshService : Service() {
     private lateinit var nearbyManager: NearbyManager
     private lateinit var syncEngine: SyncEngine
     private var gatewayManager: GatewayManager? = null
+
+    // ── Location tracking ─────────────────────────────────────────────────────
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            val loc = result.lastLocation ?: return
+            syncEngine.myLat = loc.latitude
+            syncEngine.myLng = loc.longitude
+            Log.d(TAG, "Location updated: ${loc.latitude}, ${loc.longitude}")
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -51,6 +67,9 @@ class MeshService : Service() {
         nearbyManager.startAdvertising("EVAC-${android.os.Build.MODEL}")
         nearbyManager.startDiscovery()
 
+        // ── Start location updates for proximity detection ────────────────────
+        startLocationUpdates()
+
         // Start gateway sync (safe – won't crash if Firebase unavailable)
         try {
             gatewayManager = GatewayManager(this)
@@ -70,6 +89,35 @@ class MeshService : Service() {
         Log.d(TAG, "MeshService started")
     }
 
+    private fun startLocationUpdates() {
+        val hasFine = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasCoarse = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasFine && !hasCoarse) {
+            Log.w(TAG, "Location permission not granted — proximity detection disabled")
+            return
+        }
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        val request = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY, 15_000L // every 15 seconds
+        ).apply {
+            setMinUpdateDistanceMeters(10f) // only update if moved 10m
+            setWaitForAccurateLocation(false)
+        }.build()
+
+        fusedLocationClient.requestLocationUpdates(
+            request, locationCallback, Looper.getMainLooper()
+        )
+
+        Log.d(TAG, "Location updates started")
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return START_STICKY
     }
@@ -77,6 +125,9 @@ class MeshService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         nearbyManager.stopAll()
+        if (::fusedLocationClient.isInitialized) {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
         scope.cancel()
         Log.d(TAG, "MeshService stopped")
     }
@@ -96,7 +147,7 @@ class MeshService : Service() {
     private fun buildNotification(): Notification {
         return NotificationCompat.Builder(this, MeshConstants.NOTIFICATION_CHANNEL_ID)
             .setContentTitle("EVAC Mesh Active")
-            .setContentText("Offline network running")
+            .setContentText("Offline network running — proximity alerts enabled")
             .setSmallIcon(R.drawable.ic_evac_logo)
             .setOngoing(true)
             .build()

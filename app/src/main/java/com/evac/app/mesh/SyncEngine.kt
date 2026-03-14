@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import com.evac.app.db.AppDatabase
 import com.evac.app.db.MessageEntity
+import com.evac.app.util.DeviceFingerprint
+import com.evac.app.util.ProximityAlertManager
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,10 @@ class SyncEngine(
     private val database = AppDatabase.getDatabase(context)
     private val gson = Gson()
     private val scope = CoroutineScope(Dispatchers.IO)
+
+    // ── Location — updated by MeshService from FusedLocationProvider ─────────
+    @Volatile var myLat: Double = 0.0
+    @Volatile var myLng: Double = 0.0
 
     data class SyncPacket(
         val type: String,       // "ID_LIST" or "MESSAGES"
@@ -94,6 +100,22 @@ class SyncEngine(
 
         database.messageDao().insertAll(valid)
         Log.d(TAG, "Saved ${valid.size} new messages from peer")
+
+        // ── Proximity check for SOS messages ──────────────────────
+        val myDeviceId = DeviceFingerprint.get(context)
+        valid.filter { it.type == "SOS" }.forEach { msg ->
+            ProximityAlertManager.checkAndAlert(
+                ctx          = context,
+                myLat        = myLat,
+                myLng        = myLng,
+                myDeviceId   = myDeviceId,
+                sosId        = msg.id,
+                sosLat       = msg.lat,
+                sosLng       = msg.lng,
+                sosStatus    = msg.status ?: "UNKNOWN",
+                peopleCount  = msg.peopleCount ?: 1
+            )
+        }
     }
 
     // ── Purge expired messages ────────────────────────────────────
