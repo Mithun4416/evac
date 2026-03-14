@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Telugu -->
 <resources>
-    <string name="app_name">EVAC</string>
-    <string name="tab_sos">SOS</string>
-    <string name="tab_bulletins">బులెటిన్లు</string>
-    <string name="tab_map">మ్యాప్</string>
-    <string name="sos_medical">వైద్య అత్యవసర పరిస్థితి</string>
-    <string name="sos_trapped">చిక్కుకుపోయిన</string>
-    <string name="sos_fire">అగ్ని</string>
-    <string name="sos_general">సాధారణ సహాయం</string>
-    <string name="send_sos">SOS పంపండి</string>
+    <string name="btn_medical">🚑 వైద్య అత్యవసరం</string>
+    <string name="btn_trapped">🆘 చిక్కుకుపోయాను</string>
+    <string name="btn_hazard">⚠️ ప్రమాదం</string>
+    <string name="btn_safe">✅ నేను సురక్షితంగా ఉన్నాను</string>
+    <string name="phrase_need_water">నాకు నీళ్ళు కావాలి</string>
+    <string name="phrase_child_injured">పిల్లవాడు గాయపడ్డాడు</string>
+    <string name="phrase_building_collapsed">భవనం కూలిపోయింది</string>
+    <string name="phrase_need_medicine">నాకు మందు కావాలి</string>
+    <string name="phrase_cant_move">నేను కదలలేను</string>
 </resources>

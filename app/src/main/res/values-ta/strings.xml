@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Tamil -->
 <resources>
-    <string name="app_name">EVAC</string>
-    <string name="tab_sos">SOS</string>
-    <string name="tab_bulletins">புல்லட்டின்கள்</string>
-    <string name="tab_map">வரைபடம்</string>
-    <string name="sos_medical">மருத்துவ அவசரநிலை</string>
-    <string name="sos_trapped">சிக்கிக்கொண்டது</string>
-    <string name="sos_fire">தீ</string>
-    <string name="sos_general">பொது உதவி</string>
-    <string name="send_sos">SOS அனுப்பு</string>
+    <string name="btn_medical">🚑 மருத்துவ அவசரநிலை</string>
+    <string name="btn_trapped">🆘 சிக்கிக்கொண்டேன்</string>
+    <string name="btn_hazard">⚠️ ஆபத்து</string>
+    <string name="btn_safe">✅ நான் பாதுகாப்பாக இருக்கிறேன்</string>
+    <string name="phrase_need_water">எனக்கு தண்ணீர் வேண்டும்</string>
+    <string name="phrase_child_injured">குழந்தை காயமடைந்தது</string>
+    <string name="phrase_building_collapsed">கட்டிடம் இடிந்தது</string>
+    <string name="phrase_need_medicine">எனக்கு மருந்து வேண்டும்</string>
+    <string name="phrase_cant_move">என்னால் நகர முடியவில்லை</string>
 </resources>

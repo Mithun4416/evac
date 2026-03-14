@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hindi -->
 <resources>
-    <string name="app_name">EVAC</string>
-    <string name="tab_sos">SOS</string>
-    <string name="tab_bulletins">बुलेटिन</string>
-    <string name="tab_map">नक्शा</string>
-    <string name="sos_medical">चिकित्सा आपातकाल</string>
-    <string name="sos_trapped">फंसा हुआ</string>
-    <string name="sos_fire">आग</string>
-    <string name="sos_general">सामान्य सहायता</string>
-    <string name="send_sos">SOS भेजें</string>
+    <string name="btn_medical">🚑 चिकित्सा आपातकाल</string>
+    <string name="btn_trapped">🆘 फंसा हुआ हूं</string>
+    <string name="btn_hazard">⚠️ खतरा</string>
+    <string name="btn_safe">✅ मैं सुरक्षित हूं</string>
+    <string name="phrase_need_water">मुझे पानी चाहिए</string>
+    <string name="phrase_child_injured">बच्चा घायल है</string>
+    <string name="phrase_building_collapsed">इमारत गिर गई</string>
+    <string name="phrase_need_medicine">मुझे दवा चाहिए</string>
+    <string name="phrase_cant_move">मैं हिल नहीं सकता</string>
 </resources>

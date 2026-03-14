@@ -12,8 +12,17 @@ interface MessageDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(message: MessageEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(messages: List<MessageEntity>)
+
     @Query("SELECT * FROM messages ORDER BY timestamp DESC")
-    suspend fun getAll(): List<MessageEntity>
+    fun getAllMessages(): Flow<List<MessageEntity>>
+
+    @Query("SELECT * FROM messages WHERE type = 'SOS' ORDER BY timestamp DESC")
+    fun getSosMessages(): Flow<List<MessageEntity>>
+
+    @Query("SELECT * FROM messages WHERE type IN ('BULLETIN','ACK') ORDER BY timestamp DESC")
+    fun getBulletinsAndAcks(): Flow<List<MessageEntity>>
 
     @Query("SELECT * FROM messages ORDER BY timestamp DESC")
     fun getAllLive(): LiveData<List<MessageEntity>>
