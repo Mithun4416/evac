@@ -1,5 +1,489 @@
-// All dashboard logic
-// TODO: Initialize Leaflet map
-// TODO: Connect to Firestore for real-time SOS/bulletin updates
-// TODO: Render SOS pins on map
-// TODO: Display bulletin feed
+// =============================================================================
+// FIREBASE CONFIG
+// =============================================================================
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDHmS0ZHUKJWCw_FXPDfxPenHhCSKSfkgI",
+    authDomain: "evac-dcb1a.firebaseapp.com",
+    projectId: "evac-dcb1a",
+    storageBucket: "evac-dcb1a.firebasestorage.app",
+    messagingSenderId: "925392061448",
+    appId: "1:925392061448:web:1351cbdacb0c318359bdbd"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// =============================================================================
+// STATE
+// =============================================================================
+
+let map = null;
+const markers = {};
+const sosData = {};
+let bulletinCount = 0;
+let ackCount = 0;
+const activityEntries = [];
+let firestoreListeners = [];
+
+// =============================================================================
+// AUTH
+// =============================================================================
+
+function handleLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+
+    if (!email || !password) {
+        errorEl.textContent = 'Please enter email and access code.';
+        return;
+    }
+
+    errorEl.textContent = 'Authenticating...';
+    document.getElementById('login-btn').disabled = true;
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+            errorEl.textContent = '';
+        })
+        .catch((err) => {
+            errorEl.textContent = getAuthError(err.code);
+            document.getElementById('login-btn').disabled = false;
+        });
+}
+
+function handleLogout() {
+    // Detach Firestore listeners
+    firestoreListeners.forEach(unsub => unsub());
+    firestoreListeners = [];
+    auth.signOut();
+}
+
+function getAuthError(code) {
+    const errors = {
+        'auth/user-not-found': 'No operator found with this email.',
+        'auth/wrong-password': 'Incorrect access code.',
+        'auth/invalid-email': 'Invalid email format.',
+        'auth/too-many-requests': 'Too many attempts. Try again later.',
+        'auth/invalid-credential': 'Invalid credentials. Please try again.'
+    };
+    return errors[code] || 'Authentication failed. Code: ' + code;
+}
+
+// Listen for auth state changes
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        // User is signed in — show command center
+        document.getElementById('login-page').classList.add('hidden');
+        showCommandCenter(user);
+    } else {
+        // User is signed out — show login
+        document.getElementById('login-page').classList.remove('hidden');
+        document.getElementById('command-center').classList.remove('visible');
+        document.getElementById('login-btn').disabled = false;
+    }
+});
+
+// Allow Enter key on password field
+document.getElementById('login-password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleLogin();
+});
+
+// =============================================================================
+// STARTUP + COMMAND CENTER INIT
+// =============================================================================
+
+function showCommandCenter(user) {
+    // Set operator name
+    document.getElementById('operator-name').textContent = user.email;
+
+    // Show startup overlay, then reveal command center
+    const overlay = document.getElementById('startup-overlay');
+    overlay.classList.remove('hidden');
+
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+        const cc = document.getElementById('command-center');
+        cc.classList.add('visible');
+
+        // Initialize after grid is visible
+        setTimeout(() => {
+            initMap();
+            startClock();
+            startFooterDate();
+            attachFirestoreListeners();
+            addLog('🟢', 'System online. Operator authenticated.');
+        }, 100);
+    }, 2500);
+}
+
+// =============================================================================
+// LIVE CLOCK
+// =============================================================================
+
+function startClock() {
+    function tick() {
+        const now = new Date();
+        document.getElementById('live-clock').textContent =
+            now.toLocaleTimeString('en-US', { hour12: false });
+    }
+    tick();
+    setInterval(tick, 1000);
+}
+
+function startFooterDate() {
+    const now = new Date();
+    document.getElementById('footer-date').textContent =
+        now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// =============================================================================
+// MAP
+// =============================================================================
+
+function initMap() {
+    map = L.map('map').setView([12.9716, 77.5946], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Fix Leaflet sizing inside grid
+    setTimeout(() => map.invalidateSize(), 200);
+}
+
+function updateMarker(id, data) {
+    if (!map) return;
+    if (markers[id]) map.removeLayer(markers[id]);
+
+    if (!data.lat || !data.lng) return;
+
+    const colorMap = {
+        'MEDICAL': '#ff003c', 'TRAPPED': '#ff9500',
+        'HAZARD': '#ffd600', 'SAFE': '#00ff88'
+    };
+    const color = colorMap[data.status] || '#666';
+
+    const marker = L.circleMarker([data.lat, data.lng], {
+        radius: 10, fillColor: color, color: '#fff',
+        weight: 2, opacity: 1, fillOpacity: 0.85
+    }).addTo(map);
+
+    const popup = `
+        <div style="min-width:200px; font-family: 'Exo 2', sans-serif;">
+            <h3 style="margin:0 0 8px; color:${color}; font-size:15px; letter-spacing:1px;">${data.status || 'UNKNOWN'}</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+                <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:4px; font-size:11px;">
+                    <div style="color:#6a7090; font-size:9px;">PEOPLE</div>${data.people_count || 1}
+                </div>
+                <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:4px; font-size:11px;">
+                    <div style="color:#6a7090; font-size:9px;">BATTERY</div>${data.battery_pct || '?'}%
+                </div>
+            </div>
+            <div style="background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:4px; font-size:10px; color:#00d4ff; word-break:break-all; margin-bottom:8px;">
+                ${data.device_id || id}
+            </div>
+            ${data.note ? `<div style="font-size:11px; font-style:italic; color:#999;">"${data.note}"</div>` : ''}
+        </div>`;
+
+    marker.bindPopup(popup);
+
+    marker.on('click', () => {
+        document.getElementById('ackDeviceId').value = data.device_id || id;
+        switchTab('ack-tab');
+    });
+
+    markers[id] = marker;
+}
+
+function removeMarker(id) {
+    if (markers[id] && map) {
+        map.removeLayer(markers[id]);
+        delete markers[id];
+    }
+}
+
+// =============================================================================
+// FIRESTORE LISTENERS
+// =============================================================================
+
+function attachFirestoreListeners() {
+    // SOS listener
+    const unsubSos = db.collection('sos_messages').onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            const data = change.doc.data();
+            const id = change.doc.id;
+
+            if (change.type === 'added') {
+                sosData[id] = data;
+                updateMarker(id, data);
+                addLog('🆘', `New SOS: <strong>${data.status}</strong> — ${data.people_count || 1} people at [${(data.lat || 0).toFixed(4)}, ${(data.lng || 0).toFixed(4)}]`);
+                updateLastSync();
+            }
+            if (change.type === 'modified') {
+                sosData[id] = data;
+                updateMarker(id, data);
+                addLog('🔄', `SOS updated: <strong>${id.substring(0, 8)}...</strong>`);
+                updateLastSync();
+            }
+            if (change.type === 'removed') {
+                delete sosData[id];
+                removeMarker(id);
+                addLog('✅', `SOS resolved: <strong>${id.substring(0, 8)}...</strong>`);
+            }
+        });
+        refreshSosFeed();
+        refreshStats();
+    }, (err) => {
+        console.error('SOS listener error:', err);
+        document.getElementById('sys-firestore').textContent = 'Error';
+        document.getElementById('sys-firestore').style.color = '#ff003c';
+    });
+
+    // Bulletins listener (count only)
+    const unsubBulletins = db.collection('bulletins').onSnapshot((snapshot) => {
+        bulletinCount = snapshot.size;
+        refreshStats();
+    });
+
+    // ACKs listener (count only)
+    const unsubAcks = db.collection('acks').onSnapshot((snapshot) => {
+        ackCount = snapshot.size;
+        refreshStats();
+    });
+
+    firestoreListeners.push(unsubSos, unsubBulletins, unsubAcks);
+}
+
+function updateLastSync() {
+    const now = new Date();
+    document.getElementById('footer-last-update').textContent =
+        'Last update: ' + now.toLocaleTimeString('en-US', { hour12: false });
+}
+
+// =============================================================================
+// SOS FEED (Right Column)
+// =============================================================================
+
+function refreshSosFeed() {
+    const list = document.getElementById('sos-list');
+    const arr = Object.entries(sosData).map(([id, d]) => ({ id, ...d }));
+    arr.sort((a, b) => {
+        const ta = parseTs(a.timestamp);
+        const tb = parseTs(b.timestamp);
+        return tb - ta;
+    });
+
+    if (arr.length === 0) {
+        list.innerHTML = '<div class="no-data">No active SOS signals</div>';
+        return;
+    }
+
+    list.innerHTML = '';
+    arr.forEach(sos => {
+        const div = document.createElement('div');
+        div.className = `sos-card status-${sos.status || 'UNKNOWN'}`;
+        div.onclick = () => {
+            if (sos.lat && sos.lng && map) {
+                map.setView([sos.lat, sos.lng], 15);
+                if (markers[sos.id]) markers[sos.id].openPopup();
+            }
+        };
+        const timeAgo = getTimeAgo(parseTs(sos.timestamp));
+        div.innerHTML = `
+            <div class="sos-card-header">
+                <span class="sos-status-badge">${sos.status || 'UNKNOWN'}</span>
+                <span class="sos-time">${timeAgo}</span>
+            </div>
+            <div class="sos-meta">
+                <span>👥 ${sos.people_count || 1}</span>
+                <span>🔋 ${sos.battery_pct || '?'}%</span>
+                <span>📍 ${sos.lat ? 'Located' : 'No GPS'}</span>
+            </div>
+            ${sos.note ? `<div class="sos-note">"${sos.note}"</div>` : ''}
+        `;
+        list.appendChild(div);
+    });
+}
+
+// =============================================================================
+// STATS (Left Column)
+// =============================================================================
+
+function refreshStats() {
+    const allSos = Object.values(sosData);
+    const active = allSos.length;
+    const critical = allSos.filter(s => s.status === 'MEDICAL' || s.status === 'TRAPPED').length;
+    const people = allSos.reduce((sum, s) => sum + (s.people_count || 1), 0);
+
+    animateNumber('stat-active', active);
+    animateNumber('stat-critical', critical);
+    animateNumber('stat-people', people);
+    animateNumber('stat-bulletins', bulletinCount);
+}
+
+function animateNumber(elId, target) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const current = parseInt(el.textContent) || 0;
+    if (current === target) return;
+    el.textContent = target;
+    el.style.transform = 'scale(1.15)';
+    setTimeout(() => el.style.transform = 'scale(1)', 200);
+}
+
+// =============================================================================
+// ACTIVITY LOG (Center Bottom)
+// =============================================================================
+
+function addLog(icon, message) {
+    const log = document.getElementById('activity-log');
+    const noData = log.querySelector('.no-data');
+    if (noData) noData.remove();
+
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `
+        <span class="log-icon">${icon}</span>
+        <span class="log-time">${time}</span>
+        <span class="log-msg">${message}</span>
+    `;
+
+    // Prepend (newest first)
+    log.insertBefore(entry, log.firstChild);
+
+    // Cap at 50 entries
+    while (log.children.length > 50) {
+        log.removeChild(log.lastChild);
+    }
+}
+
+// =============================================================================
+// TAB SWITCHING
+// =============================================================================
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+
+    document.getElementById(tabId).classList.add('active');
+
+    // Find corresponding button
+    const buttons = document.querySelectorAll('.tab-btn');
+    if (tabId === 'bulletin-tab') buttons[0].classList.add('active');
+    if (tabId === 'ack-tab') buttons[1].classList.add('active');
+}
+
+// =============================================================================
+// BULLETIN
+// =============================================================================
+
+function sendBulletin() {
+    const type = document.getElementById('bulletinType').value;
+    const body = document.getElementById('bulletinBody').value.trim();
+
+    if (!body) { alert('Please enter a bulletin message.'); return; }
+
+    const bulletin = {
+        id: 'bulletin_' + Date.now(),
+        type: 'BULLETIN',
+        alert_type: type,
+        body: body,
+        timestamp: Date.now(),
+        ttlHours: 12,
+        hopCount: 0,
+        maxHops: 10,
+        sent_by: auth.currentUser ? auth.currentUser.email : 'unknown',
+        signature: 'demo_signature'
+    };
+
+    db.collection('bulletins').add(bulletin)
+        .then(() => {
+            document.getElementById('bulletinBody').value = '';
+            addLog('📢', `Bulletin sent: <strong>${type}</strong> — "${body.substring(0, 50)}..."`);
+        })
+        .catch((err) => {
+            alert('Failed to send bulletin: ' + err.message);
+            addLog('❌', `Bulletin failed: ${err.message}`);
+        });
+}
+
+// =============================================================================
+// ACK
+// =============================================================================
+
+function sendAck() {
+    const deviceId = document.getElementById('ackDeviceId').value.trim();
+    const body = document.getElementById('ackBody').value.trim();
+
+    if (!deviceId) { alert('Please select a device or enter device ID.'); return; }
+    if (!body) { alert('Please enter a response message.'); return; }
+
+    const ack = {
+        id: 'ack_' + Date.now(),
+        type: 'ACK',
+        targetDeviceId: deviceId,
+        body: body,
+        timestamp: Date.now(),
+        ttlHours: 6,
+        hopCount: 0,
+        maxHops: 10,
+        sent_by: auth.currentUser ? auth.currentUser.email : 'unknown',
+        signature: 'demo_signature'
+    };
+
+    db.collection('acks').add(ack)
+        .then(() => {
+            document.getElementById('ackDeviceId').value = '';
+            document.getElementById('ackBody').value = '';
+            addLog('✅', `ACK sent to device: <strong>${deviceId.substring(0, 16)}...</strong>`);
+        })
+        .catch((err) => {
+            alert('Failed to send ACK: ' + err.message);
+            addLog('❌', `ACK failed: ${err.message}`);
+        });
+}
+
+// =============================================================================
+// UTILITIES
+// =============================================================================
+
+function parseTs(ts) {
+    if (!ts) return 0;
+    if (typeof ts === 'string') return new Date(ts).getTime();
+    if (typeof ts === 'object' && ts.seconds) return ts.seconds * 1000; // Firestore Timestamp
+    return ts;
+}
+
+function getTimeAgo(timestamp) {
+    if (!timestamp) return '—';
+    const diff = Date.now() - timestamp;
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    const days = Math.floor(hrs / 24);
+    if (days > 0) return `${days}d ago`;
+    if (hrs > 0) return `${hrs}h ago`;
+    if (mins > 0) return `${mins}m ago`;
+    return 'Just now';
+}
+
+// =============================================================================
+// HIDE STARTUP ON INITIAL LOAD (if not logged in)
+// =============================================================================
+
+window.addEventListener('load', () => {
+    // If no user, just hide the startup overlay immediately
+    setTimeout(() => {
+        if (!auth.currentUser) {
+            document.getElementById('startup-overlay').classList.add('hidden');
+        }
+    }, 300);
+});
+
+console.log('🚨 EVAC Command Center v1.0 loaded.');

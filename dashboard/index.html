@@ -3,18 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVAC Dashboard</title>
+    <title>EVAC — Command Center</title>
+    <meta name="description" content="EVAC Disaster Response Command Center Dashboard">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
-    <!-- Leaflet map + Firestore integration -->
-    <div id="app">
-        <h1>EVAC Dashboard</h1>
-        <div id="map"></div>
+
+    <!-- ==================== STARTUP OVERLAY ==================== -->
+    <div id="startup-overlay">
+        <div class="startup-logo">EVAC</div>
+        <div class="startup-sub">COMMAND CENTER v1.0</div>
+        <div class="startup-bar">
+            <div class="startup-progress"></div>
+        </div>
     </div>
-    <script src="lib/tweetnacl.min.js"></script>
+
+    <!-- ==================== LOGIN PAGE ==================== -->
+    <div id="login-page">
+        <div class="login-card">
+            <h1>EVAC</h1>
+            <div class="subtitle">AUTHORIZED PERSONNEL ONLY</div>
+            <input type="email" id="login-email" placeholder="Operator Email" autocomplete="email">
+            <input type="password" id="login-password" placeholder="Access Code" autocomplete="current-password">
+            <button class="login-btn" id="login-btn" onclick="handleLogin()">Authenticate</button>
+            <div class="login-error" id="login-error"></div>
+        </div>
+    </div>
+
+    <!-- ==================== COMMAND CENTER ==================== -->
+    <div id="command-center">
+
+        <!-- TOP BAR -->
+        <div id="topbar">
+            <div class="topbar-left">
+                <div class="dot"></div>
+                <h1>EVAC</h1>
+                <span>COMMAND CENTER</span>
+            </div>
+            <div class="topbar-center">
+                <div id="live-clock">00:00:00</div>
+                <div class="connection-badge">
+                    <div class="indicator"></div>
+                    FIRESTORE LIVE
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="operator-info">
+                    Operator: <strong id="operator-name">—</strong>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">LOGOUT</button>
+            </div>
+        </div>
+
+        <!-- LEFT COLUMN: Stats -->
+        <div id="left-col">
+            <div class="stat-card stat-sos">
+                <div class="stat-label">Active SOS Signals</div>
+                <div class="stat-number" id="stat-active">0</div>
+                <div class="stat-sub">Total incoming distress signals</div>
+            </div>
+            <div class="stat-card stat-critical">
+                <div class="stat-label">Critical Cases</div>
+                <div class="stat-number" id="stat-critical">0</div>
+                <div class="stat-sub">Medical + Trapped emergencies</div>
+            </div>
+            <div class="stat-card stat-people">
+                <div class="stat-label">People Affected</div>
+                <div class="stat-number" id="stat-people">0</div>
+                <div class="stat-sub">Total reported individuals</div>
+            </div>
+            <div class="stat-card stat-nodes">
+                <div class="stat-label">Mesh Nodes Online</div>
+                <div class="stat-number" id="stat-nodes">1</div>
+                <div class="stat-sub">Active relay devices</div>
+            </div>
+            <div class="stat-card stat-bulletins">
+                <div class="stat-label">Bulletins Sent</div>
+                <div class="stat-number" id="stat-bulletins">0</div>
+                <div class="stat-sub">Broadcasts dispatched</div>
+            </div>
+            <div class="stat-card stat-time">
+                <div class="stat-label">Avg Response Time</div>
+                <div class="stat-number" id="stat-response">— min</div>
+                <div class="stat-sub">Time to first ACK</div>
+            </div>
+
+            <!-- System Info Panel -->
+            <div class="info-panel">
+                <h3>System Status</h3>
+                <div class="info-row">
+                    <span class="label">Firestore</span>
+                    <span class="value" id="sys-firestore">Connected</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Collections</span>
+                    <span class="value">sos / bulletins / acks</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Project</span>
+                    <span class="value">evac-dcb1a</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Region</span>
+                    <span class="value">asia-south1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER COLUMN: Map + Activity Log -->
+        <div id="center-col">
+            <div id="map-container">
+                <div id="map"></div>
+            </div>
+            <div id="activity-panel">
+                <div class="panel-header">
+                    <span class="icon">📋</span>
+                    <h2>Activity Log</h2>
+                </div>
+                <div id="activity-log">
+                    <div class="no-data">Waiting for events...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: SOS Feed + Actions -->
+        <div id="right-col">
+
+            <!-- SOS Feed -->
+            <div id="sos-feed">
+                <div class="panel-header">
+                    <span class="icon">🚨</span>
+                    <h2>Live SOS Feed</h2>
+                </div>
+                <div id="sos-list">
+                    <div class="no-data">No active SOS signals</div>
+                </div>
+            </div>
+
+            <!-- Action Tabs -->
+            <div id="actions-panel">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('bulletin-tab')">📢 Bulletin</button>
+                    <button class="tab-btn" onclick="switchTab('ack-tab')">✅ ACK</button>
+                </div>
+
+                <!-- Bulletin Tab -->
+                <div class="tab-content active" id="bulletin-tab">
+                    <div class="form-group">
+                        <label>Alert Type</label>
+                        <select id="bulletinType">
+                            <option value="GENERAL">General Advisory</option>
+                            <option value="FLOOD">Flood Warning</option>
+                            <option value="EARTHQUAKE">Earthquake Alert</option>
+                            <option value="CYCLONE">Cyclone Warning</option>
+                            <option value="EVACUATION">Evacuation Order</option>
+                            <option value="SHELTER">Shelter Available</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Broadcast Message</label>
+                        <textarea id="bulletinBody" placeholder="Enter message for all mesh nodes..." rows="3"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="sendBulletin()">Transmit Broadcast</button>
+                </div>
+
+                <!-- ACK Tab -->
+                <div class="tab-content" id="ack-tab">
+                    <div class="form-group">
+                        <label>Target Device ID</label>
+                        <input type="text" id="ackDeviceId" placeholder="Auto-filled on SOS click">
+                    </div>
+                    <div class="form-group">
+                        <label>Response Message</label>
+                        <textarea id="ackBody" placeholder="Message to send back to victim..." rows="3"></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="sendAck()">Send Acknowledgment</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div id="footer">
+            <div class="footer-left">
+                <div class="footer-indicator">
+                    <div class="dot dot-green"></div>
+                    FIRESTORE SYNC ACTIVE
+                </div>
+                <span>|</span>
+                <span id="footer-last-update">Last update: —</span>
+            </div>
+            <div class="footer-right">
+                <span id="footer-date"></span>
+                <span>|</span>
+                <span>EVAC v1.0 — DISASTER RESPONSE SYSTEM</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Firebase JS (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <!-- Main App -->
     <script src="app.js"></script>
 </body>
 </html>
