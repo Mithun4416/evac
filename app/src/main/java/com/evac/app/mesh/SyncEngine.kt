@@ -36,6 +36,9 @@ class SyncEngine(private val dao: MessageDao) {
     // Listener so MeshService can react to delta sync requests
     var onSendMissingMessages: ((endpointId: String, messages: List<ByteArray>) -> Unit)? = null
 
+    @Volatile var myLat: Double = 0.0
+    @Volatile var myLng: Double = 0.0
+
     /**
      * Called when raw bytes arrive from a peer.
      * Returns the list of MessageEntity objects that were NEW and valid

@@ -19,7 +19,7 @@ class CaptivePortalServer(
 ) : NanoHTTPD(port) {
 
     private val TAG = "CaptivePortalServer"
-    private val database = AppDatabase.getDatabase(context)
+    private val database = AppDatabase.getInstance(context)
     private val scope = CoroutineScope(Dispatchers.IO)
 
     override fun serve(session: IHTTPSession): Response {
@@ -106,7 +106,7 @@ class CaptivePortalServer(
             val status  = formData["status"]?.firstOrNull() ?: "MEDICAL"
             val people  = formData["people"]?.firstOrNull()?.toIntOrNull() ?: 1
             val note    = formData["note"]?.firstOrNull()
-            val deviceId = DeviceFingerprint.getDeviceId(context)
+            val deviceId = DeviceFingerprint.getId(context)
 
             val message = MessageEntity(
                 id             = UUID.randomUUID().toString(),

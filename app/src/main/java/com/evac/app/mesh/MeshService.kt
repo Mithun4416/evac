@@ -7,30 +7,21 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-<<<<<<< HEAD
+import android.content.pm.PackageManager
 import android.os.Binder
 import android.os.Build
-=======
-import android.content.pm.PackageManager
->>>>>>> c2f58fe9ce128f322c88d204a7ede7f246a5825b
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-<<<<<<< HEAD
-=======
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
->>>>>>> c2f58fe9ce128f322c88d204a7ede7f246a5825b
 import com.evac.app.R
 import com.evac.app.db.AppDatabase
 import com.evac.app.db.MessageEntity
 import com.evac.app.gateway.GatewayManager
-<<<<<<< HEAD
 import com.evac.app.model.SosMessage
 import com.evac.app.util.DeviceFingerprint
-=======
 import com.google.android.gms.location.*
->>>>>>> c2f58fe9ce128f322c88d204a7ede7f246a5825b
 import kotlinx.coroutines.*
 
 /**
@@ -108,29 +99,11 @@ class MeshService : Service() {
             for (payload in payloads) {
                 nearbyManager.sendPayload(endpointId, payload)
             }
-<<<<<<< HEAD
             Log.d(TAG, "Sent ${payloads.size} missing message(s) to $endpointId")
-=======
-        )
-
-        syncEngine = SyncEngine(this, nearbyManager)
-
-        // Start mesh
-        nearbyManager.startAdvertising("EVAC-${android.os.Build.MODEL}")
-        nearbyManager.startDiscovery()
+        }
 
         // ── Start location updates for proximity detection ────────────────────
         startLocationUpdates()
-
-        // Start gateway sync (safe – won't crash if Firebase unavailable)
-        try {
-            gatewayManager = GatewayManager(this)
-            gatewayManager?.startPeriodicSync(scope)
-        } catch (e: Exception) {
-            Log.w(TAG, "GatewayManager init failed – cloud sync disabled: $e")
->>>>>>> c2f58fe9ce128f322c88d204a7ede7f246a5825b
-        }
-
         // ---- Wire NearbyManager → SyncEngine → relay ----
         nearbyManager.messageListener = object : NearbyManager.MessageListener {
             override fun onMessageReceived(endpointId: String, data: ByteArray) {
@@ -226,17 +199,12 @@ class MeshService : Service() {
         super.onDestroy()
         ttlCleanupJob?.cancel()
         nearbyManager.stopAll()
-<<<<<<< HEAD
         gatewayManager.stop()
-        serviceScope.cancel()
-        Log.i(TAG, "MeshService destroyed")
-=======
         if (::fusedLocationClient.isInitialized) {
             fusedLocationClient.removeLocationUpdates(locationCallback)
         }
-        scope.cancel()
-        Log.d(TAG, "MeshService stopped")
->>>>>>> c2f58fe9ce128f322c88d204a7ede7f246a5825b
+        serviceScope.cancel()
+        Log.i(TAG, "MeshService destroyed")
     }
 
     // ------------------------------------------------------------------ //
@@ -301,22 +269,9 @@ class MeshService : Service() {
     }
 
     private fun buildNotification(): Notification {
-<<<<<<< HEAD
-        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder(this, CHANNEL_ID)
-        } else {
-            @Suppress("DEPRECATION")
-            Notification.Builder(this)
-        }
-
-        return builder
-            .setContentTitle("Evac Mesh Active")
-            .setContentText("Scanning for nearby devices…")
-=======
-        return NotificationCompat.Builder(this, MeshConstants.NOTIFICATION_CHANNEL_ID)
+        return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("EVAC Mesh Active")
             .setContentText("Offline network running — proximity alerts enabled")
->>>>>>> c2f58fe9ce128f322c88d204a7ede7f246a5825b
             .setSmallIcon(R.drawable.ic_evac_logo)
             .setOngoing(true)
             .build()

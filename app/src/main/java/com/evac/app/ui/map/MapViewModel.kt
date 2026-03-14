@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 class MapViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val database = AppDatabase.getDatabase(application)
+    private val database = AppDatabase.getInstance(application)
 
     val sosMessages: Flow<List<MessageEntity>> =
         database.messageDao().getSosMessages()

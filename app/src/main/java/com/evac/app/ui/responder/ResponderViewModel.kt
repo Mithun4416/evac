@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 class ResponderViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val database = AppDatabase.getDatabase(application)
+    private val database = AppDatabase.getInstance(application)
 
     val isLoggedIn = MutableLiveData(false)
 

@@ -18,8 +18,23 @@ import com.evac.app.util.EvacPowerManager
 import com.evac.app.util.VolumeSosDetector
 import kotlinx.coroutines.launch
 import java.util.UUID
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.view.KeyEvent
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var database: AppDatabase
+    private lateinit var volumeSosDetector: VolumeSosDetector
+
+    private val PERMISSIONS = arrayOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -42,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        database = AppDatabase.getDatabase(this)
+        database = AppDatabase.getInstance(this)
 
         // Request permissions
         requestPermissions()
@@ -56,10 +71,8 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
+        
         binding.bottomNav.setupWithNavController(navController)
-
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_nav)
-        bottomNav.setupWithNavController(navController)
 
         requestMeshPermissions()
     }
@@ -114,7 +127,7 @@ class MainActivity : AppCompatActivity() {
 
         // Save TRAPPED SOS to DB
         lifecycleScope.launch {
-            val deviceId = DeviceFingerprint.getDeviceId(this@MainActivity)
+            val deviceId = DeviceFingerprint.getId(this@MainActivity)
             val batteryPct = EvacPowerManager.getBatteryPct(this@MainActivity)
 
             val message = MessageEntity(

@@ -38,6 +38,10 @@ class CitizenViewModel(application: Application) : AndroidViewModel(application)
     private var meshService: MeshService? = null
     private var lastSosTime = 0L
 
+    fun canSendSos(): Boolean {
+        return System.currentTimeMillis() - lastSosTime >= RATE_LIMIT_MS
+    }
+
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             meshService = (binder as MeshService.MeshBinder).getService()

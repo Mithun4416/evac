@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 class BulletinViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val database = AppDatabase.getDatabase(application)
+    private val database = AppDatabase.getInstance(application)
 
     val bulletinsAndAcks: Flow<List<MessageEntity>> =
         database.messageDao().getBulletinsAndAcks()

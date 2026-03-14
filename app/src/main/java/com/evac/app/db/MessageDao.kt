@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MessageDao {
@@ -17,6 +18,9 @@ interface MessageDao {
 
     @Query("SELECT * FROM messages ORDER BY timestamp DESC")
     fun getAllMessages(): Flow<List<MessageEntity>>
+
+    @Query("SELECT * FROM messages ORDER BY timestamp DESC")
+    suspend fun getAll(): List<MessageEntity>
 
     @Query("SELECT * FROM messages WHERE type = 'SOS' ORDER BY timestamp DESC")
     fun getSosMessages(): Flow<List<MessageEntity>>

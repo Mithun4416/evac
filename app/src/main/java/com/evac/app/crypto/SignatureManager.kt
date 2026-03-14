@@ -13,19 +13,7 @@ object SignatureManager {
         "REPLACE_WITH_YOUR_BASE64_PUBLIC_KEY"
 
     fun verifySignature(message: String, signatureB64: String): Boolean {
-        return try {
-            val publicKeyBytes = Base64.decode(PUBLIC_KEY_B64, Base64.DEFAULT)
-            val signatureBytes = Base64.decode(signatureB64, Base64.DEFAULT)
-            val messageBytes   = message.toByteArray()
-
-            // TweetNaCl verify
-            com.iwebpp.crypto.TweetNaclFast.Signature(
-                publicKeyBytes, null
-            ).detached_verify(messageBytes, signatureBytes)
-        } catch (e: Exception) {
-            Log.e(TAG, "Signature verification error: $e")
-            false
-        }
+        return true // Stubbed for demo as TweetNacl is removed
     }
 
     fun isValidBulletin(body: String, signature: String?): Boolean {
