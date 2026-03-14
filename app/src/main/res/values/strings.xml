@@ -1,18 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Multi-language phrase keys -->
 <resources>
     <string name="app_name">EVAC</string>
-    <string name="tab_sos">SOS</string>
-    <string name="tab_bulletins">Bulletins</string>
-    <string name="tab_map">Map</string>
-    <string name="sos_medical">Medical Emergency</string>
-    <string name="sos_trapped">Trapped / Stuck</string>
-    <string name="sos_fire">Fire</string>
-    <string name="sos_general">General Help</string>
-    <string name="people_count_label">People Count</string>
-    <string name="note_hint">Additional notes…</string>
-    <string name="send_sos">SEND SOS</string>
-    <string name="pin_hint">Enter Responder PIN</string>
-    <string name="login">Login</string>
+
+    <!-- Bottom nav -->
+    <string name="nav_sos">SOS</string>
+    <string name="nav_bulletins">Bulletins</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_responder">Responder</string>
+
+    <!-- Citizen screen -->
+    <string name="emergency_sos">Emergency SOS</string>
+    <string name="number_of_people">Number of people:</string>
+    <string name="btn_medical">🚑 MEDICAL</string>
+    <string name="btn_trapped">🆘 TRAPPED</string>
+    <string name="btn_hazard">⚠️ HAZARD</string>
+    <string name="btn_safe">✅ I\'M SAFE</string>
+    <string name="note_hint">Additional details (optional, 100 chars max)</string>
+    <string name="sos_sent">SOS sent: %1$s</string>
+    <string name="sos_rate_limit">Please wait 2 minutes before sending another SOS</string>
+
+    <!-- Phrases -->
+    <string name="phrase_need_water">I need water</string>
+    <string name="phrase_child_injured">Child injured</string>
+    <string name="phrase_building_collapsed">Building collapsed</string>
+    <string name="phrase_need_medicine">I need medicine</string>
+    <string name="phrase_cant_move">I cannot move</string>
+
+    <!-- Bulletin screen -->
+    <string name="bulletins_title">Bulletins &amp; ACKs</string>
     <string name="no_bulletins">No bulletins yet</string>
+    <string name="minutes_ago">%1$d min ago</string>
+
+    <!-- Responder screen -->
+    <string name="responder_login">Responder Login</string>
+    <string name="enter_pin">Enter PIN</string>
+    <string name="btn_login">Login</string>
+    <string name="wrong_pin">Wrong PIN</string>
+    <string name="responder_pin">1234</string>
+
+    <!-- Mesh -->
+    <string name="mesh_running">Mesh network running</string>
+    <string name="mesh_channel">EVAC Mesh</string>
 </resources>

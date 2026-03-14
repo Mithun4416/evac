@@ -1,8 +1,15 @@
 package com.evac.app.ui.map
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import com.evac.app.db.AppDatabase
+import com.evac.app.db.MessageEntity
+import kotlinx.coroutines.flow.Flow
 
-// Map display logic
-class MapViewModel : ViewModel() {
-    // TODO: Manage SOS pin overlay on map
+class MapViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val database = AppDatabase.getDatabase(application)
+
+    val sosMessages: Flow<List<MessageEntity>> =
+        database.messageDao().getSosMessages()
 }

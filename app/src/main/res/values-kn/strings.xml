@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="btn_medical">🚑 ವೈದ್ಯಕೀಯ ತುರ್ತು</string>
+    <string name="btn_trapped">🆘 ಸಿಕ್ಕಿಹಾಕಿಕೊಂಡಿದ್ದೇನೆ</string>
+    <string name="btn_hazard">⚠️ ಅಪಾಯ</string>
+    <string name="btn_safe">✅ ನಾನು ಸುರಕ್ಷಿತವಾಗಿದ್ದೇನೆ</string>
+    <string name="phrase_need_water">ನನಗೆ ನೀರು ಬೇಕು</string>
+    <string name="phrase_child_injured">ಮಗು ಗಾಯಗೊಂಡಿದೆ</string>
+    <string name="phrase_building_collapsed">ಕಟ್ಟಡ ಕುಸಿದಿದೆ</string>
+    <string name="phrase_need_medicine">ನನಗೆ ಔಷಧ ಬೇಕು</string>
+    <string name="phrase_cant_move">ನನಗೆ ಚಲಿಸಲು ಆಗುತ್ತಿಲ್ಲ</string>
+</resources>

@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Navigation component graph -->
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/nav_sos">
+    app:startDestination="@id/citizenFragment">
 
     <fragment
-        android:id="@+id/nav_sos"
+        android:id="@+id/citizenFragment"
         android:name="com.evac.app.ui.citizen.CitizenFragment"
-        android:label="SOS" />
+        android:label="SOS"/>
 
     <fragment
-        android:id="@+id/nav_bulletins"
+        android:id="@+id/bulletinFragment"
         android:name="com.evac.app.ui.bulletin.BulletinFragment"
-        android:label="Bulletins" />
+        android:label="Bulletins"/>
 
     <fragment
-        android:id="@+id/nav_map"
+        android:id="@+id/mapFragment"
         android:name="com.evac.app.ui.map.MapFragment"
-        android:label="Map" />
+        android:label="Map"/>
+
+    <fragment
+        android:id="@+id/responderLoginFragment"
+        android:name="com.evac.app.ui.responder.ResponderLoginFragment"
+        android:label="Responder"/>
 
 </navigation>

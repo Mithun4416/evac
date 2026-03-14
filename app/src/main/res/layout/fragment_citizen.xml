@@ -1,12 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 4 SOS buttons + phrase selector -->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@color/evac_dark">
 
-    <!-- SOS buttons will go here -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-</LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/emergency_sos"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- People count -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/number_of_people"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginBottom="4dp"/>
+
+        <NumberPicker
+            android:id="@+id/peoplePicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- SOS Buttons -->
+        <Button
+            android:id="@+id/btnMedical"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="@string/btn_medical"
+            android:backgroundTint="@color/sos_medical"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btnTrapped"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="@string/btn_trapped"
+            android:backgroundTint="@color/sos_trapped"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btnHazard"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="@string/btn_hazard"
+            android:backgroundTint="@color/sos_hazard"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btnSafe"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="@string/btn_safe"
+            android:backgroundTint="@color/sos_safe"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Optional note -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/note_hint"
+                android:maxLength="100"
+                android:inputType="textCapSentences"
+                android:textColor="@color/white"
+                android:textColorHint="@color/text_secondary"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Quick phrases -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quick Phrases"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/phrasesContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"/>
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
+</ScrollView>
