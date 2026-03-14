@@ -3,18 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVAC Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <title>EVAC — Command Center Dashboard</title>
+    <meta name="description" content="Real-time SOS monitoring dashboard for the EVAC offline disaster coordination network">
+
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <!-- Leaflet map + Firestore integration -->
-    <div id="app">
-        <h1>EVAC Dashboard</h1>
-        <div id="map"></div>
-    </div>
-    <script src="lib/tweetnacl.min.js"></script>
+
+    <!-- Header Overlay -->
+    <header id="header">
+        <div class="header-left">
+            <h1>🚨 EVAC</h1>
+            <span class="subtitle">Command Center</span>
+        </div>
+        <div class="header-right">
+            <div class="stat" id="stat-total">
+                <span class="stat-num">0</span>
+                <span class="stat-label">Total SOS</span>
+            </div>
+            <div class="stat stat-critical" id="stat-critical">
+                <span class="stat-num">0</span>
+                <span class="stat-label">Critical</span>
+            </div>
+            <div class="stat stat-safe" id="stat-safe">
+                <span class="stat-num">0</span>
+                <span class="stat-label">Safe</span>
+            </div>
+            <span class="live-dot"></span>
+            <span class="live-txt">LIVE</span>
+        </div>
+    </header>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- SOS Feed Sidebar -->
+    <aside id="sidebar">
+        <h2>Recent Alerts</h2>
+        <div id="feed"></div>
+    </aside>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Firebase SDKs (compat for simplicity) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <script src="app.js"></script>
 </body>
 </html>

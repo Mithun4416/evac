@@ -24,11 +24,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "11"
     }
 }
 
@@ -51,14 +51,20 @@ dependencies {
     // Nearby Connections
     implementation("com.google.android.gms:play-services-nearby:19.1.0")
 
+    // Location (GPS)
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
     // OSMDroid
     implementation("org.osmdroid:osmdroid-android:6.1.18")
 
     // NanoHTTPD
     implementation("org.nanohttpd:nanohttpd:2.3.1")
 
-    // TweetNaCl
-    implementation("com.github.AukeB:TweetNaclFast-java:1.0.0")
+    // TweetNaCl – Ed25519 (future scope — not needed for core mesh demo)
+    // implementation("com.github.AukeB:TweetNaclFast-java:1.0.0")
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))

@@ -1,4 +1,7 @@
-/* Dashboard styling */
+/* ============================================
+   EVAC Command Center — Dark Theme Dashboard
+   ============================================ */
+
 * {
     margin: 0;
     padding: 0;
@@ -6,10 +9,218 @@
 }
 
 body {
-    font-family: sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
 }
 
+/* ---- Header ---- */
+#header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: rgba(13, 17, 23, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.header-left h1 {
+    font-size: 24px;
+    font-weight: 900;
+    color: #ff4444;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #8b949e;
+    font-weight: 400;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-num {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    color: #e6edf3;
+}
+
+.stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8b949e;
+}
+
+.stat-critical .stat-num {
+    color: #ff6b6b;
+}
+
+.stat-safe .stat-num {
+    color: #51cf66;
+}
+
+.live-dot {
+    width: 10px;
+    height: 10px;
+    background: #51cf66;
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(81, 207, 102, 0.6);
+}
+
+.live-txt {
+    font-size: 12px;
+    font-weight: 700;
+    color: #51cf66;
+    letter-spacing: 2px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ---- Map ---- */
 #map {
-    width: 100%;
-    height: 80vh;
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 320px;
+    bottom: 0;
+    z-index: 1;
+}
+
+/* ---- Sidebar ---- */
+#sidebar {
+    position: fixed;
+    top: 56px;
+    right: 0;
+    width: 320px;
+    bottom: 0;
+    z-index: 1000;
+    background: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(12px);
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    overflow-y: auto;
+    padding: 16px;
+}
+
+#sidebar h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#feed {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.feed-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 12px;
+    transition: background 0.2s;
+    border-left: 4px solid #666;
+}
+
+.feed-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.feed-card.MEDICAL { border-left-color: #ff4444; }
+.feed-card.TRAPPED { border-left-color: #ff8f00; }
+.feed-card.HAZARD  { border-left-color: #fdd835; }
+.feed-card.SAFE    { border-left-color: #43a047; }
+
+.feed-status {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.feed-detail {
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.5;
+}
+
+.feed-time {
+    font-size: 11px;
+    color: #484f58;
+    margin-top: 6px;
+}
+
+/* ---- Leaflet customization ---- */
+.leaflet-popup-content-wrapper {
+    background: #161b22;
+    color: #e6edf3;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaflet-popup-tip {
+    background: #161b22;
+}
+
+.leaflet-popup-content {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 12px;
+}
+
+.popup-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+.popup-detail {
+    color: #8b949e;
+}
+
+/* ---- Scrollbar ---- */
+#sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+#sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
 }
