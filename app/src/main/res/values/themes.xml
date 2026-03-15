@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Evac" parent="Theme.AppCompat.DayNight.DarkActionBar">
-        <item name="colorPrimary">@color/evac_red</item>
+    <style name="Theme.Evac" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/evac_accent</item>
         <item name="colorPrimaryDark">@color/evac_dark</item>
         <item name="colorAccent">@color/evac_accent</item>
+        <item name="android:windowBackground">@color/evac_dark</item>
+        <item name="android:statusBarColor">@color/evac_dark</item>
+        <item name="android:navigationBarColor">@color/evac_dark</item>
     </style>
 </resources>

@@ -2,6 +2,7 @@ package com.evac.app
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,6 +17,8 @@ import com.evac.app.mesh.MeshService
 import com.evac.app.util.DeviceFingerprint
 import com.evac.app.util.EvacPowerManager
 import com.evac.app.util.VolumeSosDetector
+import com.evac.app.util.VolumeUpDetector
+import com.evac.app.util.AcousticBeacon
 import kotlinx.coroutines.launch
 import java.util.UUID
 import android.os.VibrationEffect
@@ -30,11 +33,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var database: AppDatabase
     private lateinit var volumeSosDetector: VolumeSosDetector
+    private lateinit var volumeUpDetector: VolumeUpDetector
 
-    private val PERMISSIONS = arrayOf(
-        Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION
-    )
+
+    private fun startMeshService() {
+        android.util.Log.i("MainActivity", "Starting MeshService with ACTION_START_MESH")
+        val intent = Intent(this, MeshService::class.java).apply {
+            action = "ACTION_START_MESH"
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -49,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             // All granted!
             android.util.Log.i("MainActivity", "All mesh permissions granted")
+            startMeshService()
         }
     }
 
@@ -59,12 +72,20 @@ class MainActivity : AppCompatActivity() {
 
         database = AppDatabase.getInstance(this)
 
-        // Request permissions
-        requestPermissions()
+
 
         // Volume SOS detector
         volumeSosDetector = VolumeSosDetector {
             triggerVolumeSos()
+        }
+        
+        // Acoustic Beacon detector
+        volumeUpDetector = VolumeUpDetector {
+            AcousticBeacon.toggle(this)
+        }
+        
+        if (intent?.action == AcousticBeacon.ACTION_STOP_BEACON) {
+            AcousticBeacon.stop(this)
         }
 
         // Setup bottom nav
@@ -102,15 +123,27 @@ class MainActivity : AppCompatActivity() {
 
         if (notGranted.isNotEmpty()) {
             permissionLauncher.launch(notGranted.toTypedArray())
+        } else {
+            startMeshService()
         }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             volumeSosDetector.onVolumeDown()
-            return true
+            // Let system handle volume change normally
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            volumeUpDetector.onVolumeUp()
+            // Let system handle volume change normally
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent?.action == AcousticBeacon.ACTION_STOP_BEACON) {
+            AcousticBeacon.stop(this)
+        }
     }
 
     private fun triggerVolumeSos() {
@@ -156,12 +189,5 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestPermissions() {
-        val missing = PERMISSIONS.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (missing.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, missing.toTypedArray(), 101)
-        }
-    }
+
 }

@@ -16,6 +16,44 @@ class NearbyManager(private val context: Context) {
 
     companion object {
         private const val TAG = "NearbyManager"
+
+        private var bleCallback: android.bluetooth.le.AdvertisingSetCallback? = null
+
+        fun enableExtendedBle(context: Context) {
+            val btManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? android.bluetooth.BluetoothManager
+            val advertiser = btManager?.adapter?.bluetoothLeAdvertiser
+            if (advertiser == null || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return
+
+            try {
+                val params = android.bluetooth.le.AdvertisingSetParameters.Builder()
+                    .setPrimaryPhy(android.bluetooth.BluetoothDevice.PHY_LE_CODED)
+                    .setSecondaryPhy(android.bluetooth.BluetoothDevice.PHY_LE_CODED)
+                    .setLegacyMode(false)
+                    .setTxPowerLevel(android.bluetooth.le.AdvertisingSetParameters.TX_POWER_HIGH)
+                    .setInterval(android.bluetooth.le.AdvertisingSetParameters.INTERVAL_LOW)
+                    .build()
+
+                val data = android.bluetooth.le.AdvertiseData.Builder()
+                    .setIncludeDeviceName(true)
+                    .build()
+
+                bleCallback = object : android.bluetooth.le.AdvertisingSetCallback() {}
+                advertiser.startAdvertisingSet(params, data, null, null, null, bleCallback)
+                Log.d(TAG, "BLE Coded PHY Enabled explicitly for Extended Range.")
+            } catch (e: SecurityException) {
+                Log.e(TAG, "No BLE permission for Extended Range Mode")
+            }
+        }
+
+        fun disableExtendedBle(context: Context) {
+            val btManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? android.bluetooth.BluetoothManager
+            val advertiser = btManager?.adapter?.bluetoothLeAdvertiser
+            if (advertiser != null && bleCallback != null) {
+                try {
+                    advertiser.stopAdvertisingSet(bleCallback)
+                } catch (e: SecurityException) { /* no-op */ }
+            }
+        }
     }
 
     private val connectionsClient = Nearby.getConnectionsClient(context)

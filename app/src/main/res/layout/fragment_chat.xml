@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#1a1a2e">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#0D1117"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🤖 SURVIVAL AI"
+            android:textSize="20sp"
+            android:textColor="#00D4FF"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Offline survival tips • No internet needed"
+            android:textSize="12sp"
+            android:textColor="#666677"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#00D4FF"/>
+
+    <!-- Chat Messages -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_chat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="12dp"
+        android:clipToPadding="false"/>
+
+    <!-- Quick Actions -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:background="#0D1117">
+
+        <LinearLayout
+            android:id="@+id/quick_actions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💧 Water"
+                android:textColor="#FFFFFF"
+                app:chipBackgroundColor="#1E1E2E"
+                app:chipStrokeColor="#333344"
+                app:chipStrokeWidth="1dp"
+                android:onClick="onQuickChip"/>
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🩹 First Aid"
+                android:textColor="#FFFFFF"
+                app:chipBackgroundColor="#1E1E2E"
+                app:chipStrokeColor="#333344"
+                app:chipStrokeWidth="1dp"
+                android:layout_marginStart="6dp"
+                android:onClick="onQuickChip"/>
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏚️ Earthquake"
+                android:textColor="#FFFFFF"
+                app:chipBackgroundColor="#1E1E2E"
+                app:chipStrokeColor="#333344"
+                app:chipStrokeWidth="1dp"
+                android:layout_marginStart="6dp"
+                android:onClick="onQuickChip"/>
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌊 Flood"
+                android:textColor="#FFFFFF"
+                app:chipBackgroundColor="#1E1E2E"
+                app:chipStrokeColor="#333344"
+                app:chipStrokeWidth="1dp"
+                android:layout_marginStart="6dp"
+                android:onClick="onQuickChip"/>
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔥 Fire"
+                android:textColor="#FFFFFF"
+                app:chipBackgroundColor="#1E1E2E"
+                app:chipStrokeColor="#333344"
+                app:chipStrokeWidth="1dp"
+                android:layout_marginStart="6dp"
+                android:onClick="onQuickChip"/>
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="❤️ CPR"
+                android:textColor="#FFFFFF"
+                app:chipBackgroundColor="#1E1E2E"
+                app:chipStrokeColor="#333344"
+                app:chipStrokeWidth="1dp"
+                android:layout_marginStart="6dp"
+                android:onClick="onQuickChip"/>
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🧘 Panic"
+                android:textColor="#FFFFFF"
+                app:chipBackgroundColor="#1E1E2E"
+                app:chipStrokeColor="#333344"
+                app:chipStrokeWidth="1dp"
+                android:layout_marginStart="6dp"
+                android:onClick="onQuickChip"/>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Input Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:background="#0D1117"
+        android:gravity="center_vertical">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_chat_input"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:hint="Ask about survival..."
+            android:textColor="#FFFFFF"
+            android:textColorHint="#555566"
+            android:background="#1E1E2E"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:inputType="text"
+            android:imeOptions="actionSend"
+            android:singleLine="true"
+            android:textSize="14sp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_send"
+            android:layout_width="56dp"
+            android:layout_height="48dp"
+            android:text="➤"
+            android:textSize="18sp"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="#00D4FF"
+            android:textColor="#000000"/>
+    </LinearLayout>
+
+</LinearLayout>

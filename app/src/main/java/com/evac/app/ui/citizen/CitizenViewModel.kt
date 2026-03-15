@@ -26,7 +26,7 @@ class CitizenViewModel(application: Application) : AndroidViewModel(application)
 
     companion object {
         private const val TAG = "CitizenViewModel"
-        private const val RATE_LIMIT_MS = 2 * 60 * 1000L // 2 minutes
+        private const val RATE_LIMIT_MS = 60 * 1000L // 1 minute
     }
 
     private val _sosSent = MutableLiveData<Boolean>()
@@ -82,7 +82,7 @@ class CitizenViewModel(application: Application) : AndroidViewModel(application)
         isVolumeSos: Boolean = false,
         location: Location? = null
     ) {
-        // Rate limit: 1 SOS per 2 minutes
+        // Rate limit: 1 SOS per 1 minute
         val now = System.currentTimeMillis()
         if (now - lastSosTime < RATE_LIMIT_MS) {
             val remainSec = (RATE_LIMIT_MS - (now - lastSosTime)) / 1000

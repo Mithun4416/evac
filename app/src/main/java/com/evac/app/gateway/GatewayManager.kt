@@ -25,13 +25,14 @@ class GatewayManager(private val context: Context) {
     companion object {
         private const val TAG = "GatewayManager"
         private const val COLLECTION_MESSAGES = "mesh_messages"
-        private const val SYNC_INTERVAL_MS = 30_000L // 30 seconds for demo
+        private const val SYNC_INTERVAL_MS = 10_000L // 10 seconds for real-time dashboard
     }
 
     private val db = FirebaseFirestore.getInstance()
     private val dao = AppDatabase.getInstance(context).messageDao()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var firestoreListener: ListenerRegistration? = null
+    private var bulletinsListener: ListenerRegistration? = null
+    private var acksListener: ListenerRegistration? = null
     private var syncJob: Job? = null
 
     // Callback to inject downloaded messages into the mesh
@@ -48,7 +49,8 @@ class GatewayManager(private val context: Context) {
 
     fun stop() {
         syncJob?.cancel()
-        firestoreListener?.remove()
+        bulletinsListener?.remove()
+        acksListener?.remove()
         scope.cancel()
         Log.i(TAG, "Gateway stopped")
     }
@@ -77,13 +79,22 @@ class GatewayManager(private val context: Context) {
 
             for (entity in unsynced) {
                 val data = entityToMap(entity)
-                db.collection(COLLECTION_MESSAGES)
+                
+                // Route to the correct dashboard collection based on message type
+                val collectionName = when (entity.type) {
+                    "SOS" -> "sos_messages"
+                    "BULLETIN" -> "bulletins"
+                    "ACK" -> "acks"
+                    else -> "mesh_messages"
+                }
+
+                db.collection(collectionName)
                     .document(entity.id)
                     .set(data)
                     .addOnSuccessListener {
                         scope.launch {
                             dao.markSynced(entity.id)
-                            Log.d(TAG, "Uploaded & marked synced: ${entity.id}")
+                            Log.d(TAG, "Uploaded to $collectionName & marked synced: ${entity.id}")
                         }
                     }
                     .addOnFailureListener { e ->
@@ -100,29 +111,40 @@ class GatewayManager(private val context: Context) {
     // ------------------------------------------------------------------ //
 
     private fun startRealtimeDownload() {
-        firestoreListener = db.collection(COLLECTION_MESSAGES)
+        // 1. Listen for new Bulletins
+        bulletinsListener = db.collection("bulletins")
             .addSnapshotListener { snapshots, error ->
-                if (error != null) {
-                    Log.e(TAG, "Firestore listener error", error)
-                    return@addSnapshotListener
-                }
+                handleIncomingCloudData(snapshots, error)
+            }
 
-                snapshots?.documentChanges?.forEach { change ->
-                    if (change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
-                        val doc = change.document
-                        val entity = mapToEntity(doc.id, doc.data)
+        // 2. Listen for new ACKs
+        acksListener = db.collection("acks")
+            .addSnapshotListener { snapshots, error ->
+                handleIncomingCloudData(snapshots, error)
+            }
+    }
 
-                        scope.launch {
-                            val existing = dao.getById(entity.id)
-                            if (existing == null) {
-                                dao.insert(entity)
-                                Log.i(TAG, "Downloaded from cloud: ${entity.type} ${entity.id}")
-                                onNewMessageFromCloud?.invoke(entity)
-                            }
-                        }
+    private fun handleIncomingCloudData(snapshots: com.google.firebase.firestore.QuerySnapshot?, error: com.google.firebase.firestore.FirebaseFirestoreException?) {
+        if (error != null) {
+            Log.e(TAG, "Firestore listener error", error)
+            return
+        }
+
+        snapshots?.documentChanges?.forEach { change ->
+            if (change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
+                val doc = change.document
+                val entity = mapToEntity(doc.id, doc.data)
+
+                scope.launch {
+                    val existing = dao.getById(entity.id)
+                    if (existing == null) {
+                        dao.insert(entity)
+                        Log.i(TAG, "Downloaded from cloud: ${entity.type} ${entity.id}")
+                        onNewMessageFromCloud?.invoke(entity)
                     }
                 }
             }
+        }
     }
 
     // ------------------------------------------------------------------ //
@@ -160,26 +182,26 @@ class GatewayManager(private val context: Context) {
         id = id,
         type = (data["type"] as? String) ?: "SOS",
         timestamp = (data["timestamp"] as? Long) ?: System.currentTimeMillis(),
-        hopCount = (data["hop_count"] as? Long)?.toInt() ?: 0,
-        maxHops = (data["max_hops"] as? Long)?.toInt() ?: 10,
-        ttlHours = (data["ttl_hours"] as? Long)?.toInt() ?: 24,
+        hopCount = ((data["hop_count"] as? Long) ?: (data["hopCount"] as? Long))?.toInt() ?: 0,
+        maxHops = ((data["max_hops"] as? Long) ?: (data["maxHops"] as? Long))?.toInt() ?: 10,
+        ttlHours = ((data["ttl_hours"] as? Long) ?: (data["ttlHours"] as? Long))?.toInt() ?: 24,
         hash = (data["hash"] as? String) ?: "",
         status = data["status"] as? String,
-        deviceId = data["device_id"] as? String,
+        deviceId = (data["device_id"] as? String) ?: (data["deviceId"] as? String),
         lat = data["lat"] as? Double,
         lng = data["lng"] as? Double,
         accuracyM = (data["accuracy_m"] as? Double)?.toFloat(),
-        peopleCount = (data["people_count"] as? Long)?.toInt(),
-        batteryPct = (data["battery_pct"] as? Long)?.toInt(),
+        peopleCount = ((data["people_count"] as? Long) ?: (data["peopleCount"] as? Long))?.toInt(),
+        batteryPct = ((data["battery_pct"] as? Long) ?: (data["batteryPct"] as? Long))?.toInt(),
         note = data["note"] as? String,
         phraseKey = data["phrase_key"] as? String,
-        isVolumeSos = (data["is_volume_sos"] as? Boolean) ?: false,
-        alertType = data["alert_type"] as? String,
+        isVolumeSos = (data["is_volume_sos"] as? Boolean) ?: (data["isVolumeSos"] as? Boolean) ?: false,
+        alertType = (data["alert_type"] as? String) ?: (data["alertType"] as? String),
         body = data["body"] as? String,
         zoneLat = data["zone_lat"] as? Double,
         zoneLng = data["zone_lng"] as? Double,
         zoneRadiusKm = data["zone_radius_km"] as? Double,
-        targetDeviceId = data["target_device_id"] as? String,
+        targetDeviceId = (data["target_device_id"] as? String) ?: (data["targetDeviceId"] as? String),
         signature = data["signature"] as? String,
         syncedToFirebase = true // came from Firebase, already synced
     )

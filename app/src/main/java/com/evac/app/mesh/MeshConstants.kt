@@ -10,6 +10,7 @@ object MeshConstants {
     const val TTL_HOURS_SOS = 24
     const val TTL_HOURS_BULLETIN = 12
     const val TTL_HOURS_ACK = 6
+    const val TTL_SECONDS = 86400 // 24 hours
 
     // Sync intervals
     const val SYNC_INTERVAL_NORMAL_MS = 30_000L       // 30 seconds

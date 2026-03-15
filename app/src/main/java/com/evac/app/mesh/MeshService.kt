@@ -23,6 +23,7 @@ import com.evac.app.model.SosMessage
 import com.evac.app.util.DeviceFingerprint
 import com.google.android.gms.location.*
 import kotlinx.coroutines.*
+import com.evac.app.mesh.ExtendedRangeManager
 
 /**
  * MeshService — foreground service keeping the mesh alive.
@@ -102,6 +103,23 @@ class MeshService : Service() {
             Log.d(TAG, "Sent ${payloads.size} missing message(s) to $endpointId")
         }
 
+        // ---- Extended Range Aggressive Rebroadcast ----
+        serviceScope.launch {
+            while (isActive) {
+                if (ExtendedRangeManager.isExtendedModeActive) {
+                    val endpoints = nearbyManager.getConnectedEndpoints()
+                    if (endpoints.isNotEmpty()) {
+                        val idListPayload = syncEngine.buildIdListPayload()
+                        Log.d(TAG, "Aggressive Rebroadcast: Syncing via ${endpoints.size} peers.")
+                        for (ep in endpoints) {
+                            nearbyManager.sendPayload(ep, idListPayload)
+                        }
+                    }
+                }
+                delay(30_000L) // 30 seconds interval for extended mode
+            }
+        }
+
         // ── Start location updates for proximity detection ────────────────────
         startLocationUpdates()
         // ---- Wire NearbyManager → SyncEngine → relay ----
@@ -139,10 +157,6 @@ class MeshService : Service() {
             }
         }
 
-        // Start advertising + discovery
-        val localName = "evac_${DeviceFingerprint.getId(applicationContext).take(8)}"
-        nearbyManager.startAdvertisingAndDiscovery(localName)
-
         // ---- Initialize Gateway (Firebase bridge) ----
         gatewayManager = GatewayManager(applicationContext)
         gatewayManager.onNewMessageFromCloud = { entity ->
@@ -159,7 +173,35 @@ class MeshService : Service() {
         // ---- Start TTL cleanup job (every 30 min) ----
         startTtlCleanup()
 
-        Log.i(TAG, "MeshService fully initialized as '$localName'")
+        Log.i(TAG, "MeshService fully initialized")
+        
+        // Try starting the mesh if permissions are already granted (e.g. app restart)
+        startMeshNetwork()
+    }
+
+    private fun startMeshNetwork() {
+        val hasFine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val hasCoarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        
+        var hasBluetooth = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            hasBluetooth = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADVERTISE) == PackageManager.PERMISSION_GRANTED &&
+                           ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED &&
+                           ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+        }
+
+        var hasWifi = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            hasWifi = ContextCompat.checkSelfPermission(this, Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED
+        }
+
+        if ((hasFine || hasCoarse) && hasBluetooth && hasWifi) {
+            val localName = "evac_${DeviceFingerprint.getId(applicationContext).take(8)}"
+            nearbyManager.startAdvertisingAndDiscovery(localName)
+            Log.i(TAG, "Mesh network started securely as '$localName'")
+        } else {
+            Log.w(TAG, "Cannot start mesh network: Missing required permissions")
+        }
     }
 
     private fun startLocationUpdates() {
@@ -192,6 +234,11 @@ class MeshService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == "ACTION_START_MESH") {
+            Log.i(TAG, "Received ACTION_START_MESH")
+            startMeshNetwork()
+            startLocationUpdates() // Also kickstart location if permissions just got granted
+        }
         return START_STICKY
     }
 

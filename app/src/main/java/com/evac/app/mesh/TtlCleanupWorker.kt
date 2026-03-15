@@ -25,7 +25,7 @@ class TtlCleanupWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            val db = (applicationContext as EvacApplication).database
+            val db = EvacApplication.database
             val dao = db.messageDao()
 
             val cutoff = System.currentTimeMillis() - (MeshConstants.TTL_SECONDS * 1000L)

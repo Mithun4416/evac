@@ -54,4 +54,7 @@ interface MessageDao {
 
     @Query("DELETE FROM messages WHERE timestamp < :cutoffMs")
     suspend fun deleteExpired(cutoffMs: Long)
+
+    @Query("DELETE FROM messages WHERE timestamp < :cutoffMs")
+    suspend fun deleteExpiredMessages(cutoffMs: Long): Int
 }

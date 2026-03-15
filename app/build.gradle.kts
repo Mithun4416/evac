@@ -62,6 +62,9 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    // WorkManager (for TtlCleanupWorker)
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
     // OSMDroid
     implementation("org.osmdroid:osmdroid-android:6.1.18")
 
@@ -74,4 +77,5 @@ dependencies {
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
 }

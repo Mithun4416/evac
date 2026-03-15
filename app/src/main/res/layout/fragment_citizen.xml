@@ -130,6 +130,18 @@
                 android:layout_marginStart="6dp" />
         </LinearLayout>
 
+        <!-- Acoustic Beacon -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_beacon"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="📢 SOUND BEACON (Victim Locator)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#00d4ff"
+            android:layout_marginBottom="16dp" />
+
         <!-- People Count -->
         <TextView
             android:layout_width="wrap_content"

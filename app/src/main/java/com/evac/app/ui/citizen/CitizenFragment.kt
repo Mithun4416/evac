@@ -23,6 +23,7 @@ import androidx.fragment.app.viewModels
 import com.evac.app.R
 import com.evac.app.util.Phrases
 import com.evac.app.util.ProximityAlertManager
+import com.evac.app.util.AcousticBeacon
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -108,6 +109,18 @@ class CitizenFragment : Fragment() {
         }
         view.findViewById<MaterialButton>(R.id.btn_safe).setOnClickListener {
             sendSos("SAFE", etNote, tvStatus)
+        }
+
+        val btnBeacon = view.findViewById<MaterialButton>(R.id.btn_beacon)
+        btnBeacon.setOnClickListener {
+            AcousticBeacon.toggle(requireContext())
+            if (AcousticBeacon.isPlaying) {
+                btnBeacon.text = "⏹ STOP BEACON"
+                btnBeacon.setBackgroundColor(android.graphics.Color.RED)
+            } else {
+                btnBeacon.text = "📢 SOUND BEACON (Victim Locator)"
+                btnBeacon.setBackgroundColor(android.graphics.Color.parseColor("#00d4ff"))
+            }
         }
 
         // Observe ViewModel status
