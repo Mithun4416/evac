@@ -140,8 +140,6 @@ EVAC creates a **fully offline mesh network** where phones automatically relay S
 
 **Key Principle**: The mesh is **fully autonomous**. If the gateway fails, victims and rescuers keep communicating offline.
 
----
-
 ## 🛠️ Tech Stack
 
 | Component | Technology | Why |
@@ -157,41 +155,6 @@ EVAC creates a **fully offline mesh network** where phones automatically relay S
 | **Cryptography** | SHA-256 + Ed25519 | Message integrity, bulletin authentication |
 
 **Total Cost**: ₹0 (100% free & open-source)
-
----
-
-## 📱 Screenshots
-
-> **Note**: Add screenshots here after deployment
-```
-app/
-├── screenshots/
-│   ├── sos_interface.png
-│   ├── field_map.png
-│   ├── dashboard.png
-│   └── demo.gif
-```
-
----
-
-## 🎥 Demo
-
-### 4-Minute Live Demo (Hackathon Finals)
-
-**Setup**: 4 phones in Airplane Mode (no internet), 1 laptop
-
-| Time | Action | Impact |
-|------|--------|--------|
-| 0:30 | Victim presses Volume Down 3× (phone in pocket, screen off) | Silent SOS sent |
-| 1:00 | SOS hops across 3 phones via mesh | Appears on Field Responder's map |
-| 2:00 | Responder's phone (with internet) uploads to cloud | SOS appears on Command Center dashboard 500km away |
-| 2:30 | Command center sends ACK: "Helicopter ETA 20 min" | ACK hops back to victim's phone |
-| 3:30 | Legacy flip phone connects to WiFi portal, submits SOS | Appears on dashboard (no app needed) |
-
-**Closing Line**: 
-> *"Four phones. Zero internet. A victim trapped in the dark pressed a button three times. Sixty seconds later, a command center 500 km away dispatched a helicopter. When everything fails, Evac doesn't."*
-
-[Watch Full Demo →](#) *(Add YouTube link)*
 
 ---
 
@@ -323,13 +286,12 @@ adb logcat | grep "EVAC"
 
 **Built in 19 hours at Mega Hackathon 2024, BMS College of Engineering (March 13-14, 2024)**
 
-| Name | Role | GitHub |
-|------|------|--------|
-| **Jason** | Mesh Networking + Backend | [@yourhandle](https://github.com/yourhandle) |
-| **Mithun** | Android UI + Integration | [@mithunhandle](https://github.com/mithunhandle) |
-| **Darshan** | Dashboard + Firebase | [@darshanhandle](https://github.com/darshanhandle) |
-| **Nahyan** | Database + Integration | [@nahyanhandle](https://github.com/nahyanhandle) |
-
+| Name | Role | 
+|------|------|
+| **Jason** | Backend + UI| 
+| **Mithun** | Android UI + Integration | 
+| **Darshan** | Mesh Network| 
+| **Nahyan** |  Mesh Network | 
 ---
 
 ## 🙏 Acknowledgments
@@ -374,22 +336,10 @@ EVAC addresses all three problems with zero infrastructure dependency.
 
 **This isn't just a hackathon project. It's a blueprint for disaster-resilient communication.**
 
----
-
-## 📞 Contact
-
-**Questions? Suggestions? Want to contribute?**
-
-- 📧 Email: [your.email@example.com](mailto:your.email@example.com)
-- 🐦 Twitter: [@yourhandle](https://twitter.com/yourhandle)
-- 💼 LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
-
----
-
 <div align="center">
 
 **⭐ If this project helped you, please consider giving it a star!**
 
-**Built with ❤️ in Bangalore during a 19-hour sprint**
+**Built with ❤️ in BMSCE,Bangalore during a 19-hour sprint**
 
 </div>
