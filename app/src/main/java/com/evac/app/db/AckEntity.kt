@@ -1,0 +1,39 @@
+package com.evac.app.db
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+/**
+ * Room entity for ACK messages — sent by Command Center to a specific victim.
+ *
+ * Routing contract:
+ *   - Every device in the mesh stores this row (for store-and-forward relay).
+ *   - Only the device whose DeviceFingerprint matches [targetDeviceId] shows a UI alert.
+ *   - Deduplication is handled at the DB level via OnConflictStrategy.IGNORE on [uuid].
+ *   - Garbage collection is driven by [expiresAt]; rows past TTL are purged periodically.
+ */
+@Entity(tableName = "acks")
+data class AckEntity(
+
+    /** Globally unique message ID (UUID v4). Primary key for dedup. */
+    @PrimaryKey
+    val uuid: String,
+
+    /** The body/content of the acknowledgment. */
+    val message: String,
+
+    /** Epoch millis when this ACK was created at the Command Center. */
+    val timestamp: Long,
+
+    /** Epoch millis after which this ACK should be garbage-collected. */
+    @ColumnInfo(name = "expires_at")
+    val expiresAt: Long,
+
+    /**
+     * SHA-256 device fingerprint of the intended recipient.
+     * Only this device's UI reacts; all others are silent "Data Mules."
+     */
+    @ColumnInfo(name = "target_device_id")
+    val targetDeviceId: String
+)
