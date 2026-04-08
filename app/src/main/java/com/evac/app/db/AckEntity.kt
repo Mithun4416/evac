@@ -10,8 +10,12 @@ import androidx.room.PrimaryKey
  * Routing contract:
  *   - Every device in the mesh stores this row (for store-and-forward relay).
  *   - Only the device whose DeviceFingerprint matches [targetDeviceId] shows a UI alert.
- *   - Deduplication is handled at the DB level via OnConflictStrategy.IGNORE on [uuid].
- *   - Garbage collection is driven by [expiresAt]; rows past TTL are purged periodically.
+ *   - Deduplication: OnConflictStrategy.IGNORE on [uuid] PK.
+ *   - Garbage collection: rows where [expiresAt] < System.currentTimeMillis() are purged.
+ *
+ * ⚠️ TIME UNIT CONTRACT: [timestamp] and [expiresAt] are ALWAYS 13-digit epoch
+ *    MILLISECONDS (matching System.currentTimeMillis()), NEVER Unix seconds.
+ *    Using seconds will cause instant TTL deletion.
  */
 @Entity(tableName = "acks")
 data class AckEntity(
@@ -23,10 +27,10 @@ data class AckEntity(
     /** The body/content of the acknowledgment. */
     val message: String,
 
-    /** Epoch millis when this ACK was created at the Command Center. */
+    /** Epoch MILLISECONDS when this ACK was created at the Command Center. */
     val timestamp: Long,
 
-    /** Epoch millis after which this ACK should be garbage-collected. */
+    /** Epoch MILLISECONDS after which this ACK should be garbage-collected. */
     @ColumnInfo(name = "expires_at")
     val expiresAt: Long,
 

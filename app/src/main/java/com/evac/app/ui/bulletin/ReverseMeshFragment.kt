@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -21,17 +20,19 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * ReverseMeshFragment — demonstrates how the UI layer observes the Reverse Mesh
- * via Kotlin Flow collection, showing:
+ * ReverseMeshFragment — UI layer that observes the Reverse Mesh via Kotlin Flow.
  *
- *   1. A live RecyclerView of Bulletins (auto-updates via StateFlow).
- *   2. A one-time popup dialog when a targeted ACK arrives for THIS device.
- *   3. A toast when any new Bulletin drops into the mesh.
+ * Three concurrent flow collectors inside repeatOnLifecycle(STARTED):
  *
- * Key patterns:
- *   - repeatOnLifecycle(STARTED): flows are only collected when the Fragment is
- *     visible, preventing leaked coroutines and ghost notifications.
- *   - SharedFlow for one-time events: ensures ACK popups don't replay on rotation.
+ *   1. activeBulletins (StateFlow) → RecyclerView auto-update.
+ *   2. incomingAckEvent (SharedFlow) → one-time ACK popup dialog.
+ *      Only fires for ACKs where target_device_id == this phone's fingerprint.
+ *   3. incomingBulletinEvent (SharedFlow) → one-time toast notification.
+ *
+ * Key lifecycle patterns:
+ *   - repeatOnLifecycle(STARTED): collectors stop when Fragment goes to background.
+ *     This prevents leaked coroutines and ghost notifications.
+ *   - SharedFlow for events: no replay on rotation, no stale popups.
  */
 class ReverseMeshFragment : Fragment() {
 
@@ -63,33 +64,34 @@ class ReverseMeshFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
 
                 // ── Flow 1: Live Bulletin list → RecyclerView ────────────
+                // StateFlow emits the full list whenever Room data changes.
+                // The adapter diffing handles add/remove animations.
                 launch {
                     viewModel.activeBulletins.collect { bulletins ->
-                        // Convert BulletinEntity to the existing MessageEntity-based adapter
-                        // or display directly. Here we update the adapter.
-                        // If using a dedicated BulletinEntity adapter, replace accordingly.
-                        val bulletinCount = bulletins.size
-                        view?.findViewById<TextView>(R.id.tvBulletinCount)?.text =
-                            "$bulletinCount active bulletin(s)"
-
-                        // For the existing BulletinAdapter that expects MessageEntity,
-                        // you can create a simple data holder or use a new adapter.
-                        // The important thing is the Flow collection pattern:
-                        android.util.Log.d(
-                            "ReverseMeshFragment",
-                            "Bulletin list updated: $bulletinCount items"
-                        )
+                        adapter.submitList(bulletins.map { bulletin ->
+                            // Map BulletinEntity to whatever the adapter expects.
+                            // If using a dedicated BulletinEntity adapter, pass directly.
+                            com.evac.app.db.MessageEntity(
+                                id = bulletin.uuid,
+                                type = "BULLETIN",
+                                timestamp = bulletin.timestamp,
+                                body = bulletin.message
+                            )
+                        })
                     }
                 }
 
-                // ── Flow 2: One-time ACK popup (targeted at THIS device) ─
+                // ── Flow 2: One-time ACK popup ───────────────────────────
+                // SharedFlow: each emission consumed once, no replay on rotation.
+                // This ONLY fires for ACKs where target == this device.
                 launch {
                     viewModel.incomingAckEvent.collect { ack ->
-                        showAckPopup(ack.message, ack.timestamp)
+                        showTargetedAckPopup(ack.message, ack.timestamp)
                     }
                 }
 
                 // ── Flow 3: One-time Bulletin toast ──────────────────────
+                // Fires when a genuinely new Bulletin arrives (not a duplicate).
                 launch {
                     viewModel.incomingBulletinEvent.collect { bulletin ->
                         Toast.makeText(
@@ -104,10 +106,12 @@ class ReverseMeshFragment : Fragment() {
     }
 
     /**
-     * Show a blocking popup dialog when a targeted ACK arrives.
-     * This only fires for ACKs where target_device_id == this phone's fingerprint.
+     * One-time popup dialog when a targeted ACK arrives for THIS device.
+     * This is the "your SOS has been acknowledged" confirmation.
      */
-    private fun showAckPopup(message: String, timestampMs: Long) {
+    private fun showTargetedAckPopup(message: String, timestampMs: Long) {
+        if (!isAdded || isDetached) return // Safety: don't show if fragment is gone
+
         val formattedTime = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
             .format(Date(timestampMs))
 

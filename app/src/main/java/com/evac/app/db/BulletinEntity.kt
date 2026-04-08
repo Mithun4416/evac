@@ -9,8 +9,12 @@ import androidx.room.PrimaryKey
  *
  * Routing contract:
  *   - Every device in the mesh stores AND displays this message.
- *   - Deduplication is handled at the DB level via OnConflictStrategy.IGNORE on [uuid].
- *   - Garbage collection is driven by [expiresAt]; rows past TTL are purged periodically.
+ *   - Deduplication: OnConflictStrategy.IGNORE on [uuid] PK.
+ *   - Garbage collection: rows where [expiresAt] < System.currentTimeMillis() are purged.
+ *
+ * ⚠️ TIME UNIT CONTRACT: [timestamp] and [expiresAt] are ALWAYS 13-digit epoch
+ *    MILLISECONDS (matching System.currentTimeMillis()), NEVER Unix seconds.
+ *    Using seconds will cause instant TTL deletion.
  */
 @Entity(tableName = "bulletins")
 data class BulletinEntity(
@@ -22,10 +26,10 @@ data class BulletinEntity(
     /** The bulletin content / alert body. */
     val message: String,
 
-    /** Epoch millis when this Bulletin was created at the Command Center. */
+    /** Epoch MILLISECONDS when this Bulletin was created at the Command Center. */
     val timestamp: Long,
 
-    /** Epoch millis after which this Bulletin should be garbage-collected. */
+    /** Epoch MILLISECONDS after which this Bulletin should be garbage-collected. */
     @ColumnInfo(name = "expires_at")
     val expiresAt: Long
 )
