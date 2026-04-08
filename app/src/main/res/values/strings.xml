@@ -41,4 +41,11 @@
     <!-- Mesh -->
     <string name="mesh_running">Mesh network running</string>
     <string name="mesh_channel">EVAC Mesh</string>
+
+    <string name="responder_dashboard">Responder Dashboard</string>
+    <string name="nearby_alerts">Nearby Alerts (5km)</string>
+    <string name="no_nearby_sos">No SOS signals within 5km</string>
+    <string name="btn_navigate">NAVIGATE</string>
+    <string name="btn_resolved">RESOLVED</string>
+    <string name="syncing_location">Syncing location…</string>
 </resources>

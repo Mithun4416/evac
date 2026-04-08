@@ -34,6 +34,9 @@ data class MessageEntity(
     @ColumnInfo(name = "phrase_key") val phraseKey: String? = null,
     @ColumnInfo(name = "is_volume_sos") val isVolumeSos: Boolean = false,
 
+    // --- Responder Tasking ---
+    @ColumnInfo(name = "assigned_to") val assignedTo: String? = null,
+
     // --- BULLETIN-specific ---
     @ColumnInfo(name = "alert_type") val alertType: String? = null,
     val body: String? = null,

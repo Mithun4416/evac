@@ -95,6 +95,14 @@ class MainActivity : AppCompatActivity() {
         
         binding.bottomNav.setupWithNavController(navController)
 
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            binding.bottomNav.visibility = if (destination.id == R.id.responderDashboardFragment) {
+                android.view.View.GONE
+            } else {
+                android.view.View.VISIBLE
+            }
+        }
+
         requestMeshPermissions()
     }
 

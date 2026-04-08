@@ -27,6 +27,15 @@
     <fragment
         android:id="@+id/responderLoginFragment"
         android:name="com.evac.app.ui.responder.ResponderLoginFragment"
-        android:label="Responder"/>
+        android:label="Responder">
+        <action
+            android:id="@+id/action_login_to_dashboard"
+            app:destination="@id/responderDashboardFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/responderDashboardFragment"
+        android:name="com.evac.app.ui.responder.ResponderDashboardFragment"
+        android:label="Dashboard"/>
 
 </navigation>

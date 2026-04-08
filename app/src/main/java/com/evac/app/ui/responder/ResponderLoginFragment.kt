@@ -12,6 +12,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
+import androidx.navigation.fragment.findNavController
 
 class ResponderLoginFragment : Fragment() {
 
@@ -79,14 +80,7 @@ class ResponderLoginFragment : Fragment() {
     }
 
     private fun showLoggedInState(view: View, email: String) {
-        view.findViewById<View>(R.id.etEmail)?.let { (it.parent?.parent as? View)?.visibility = View.GONE }
-        view.findViewById<View>(R.id.etPassword)?.let { (it.parent?.parent as? View)?.visibility = View.GONE }
-        view.findViewById<MaterialButton>(R.id.btnLogin).visibility = View.GONE
-        view.findViewById<TextView>(R.id.tvError).visibility = View.GONE
-
-        val statusCard = view.findViewById<MaterialCardView>(R.id.statusCard)
-        statusCard.visibility = View.VISIBLE
-        view.findViewById<TextView>(R.id.tvLoggedInAs).text = "Logged in as: $email"
+        findNavController().navigate(R.id.action_login_to_dashboard)
     }
 
     private fun showLoggedOutState(view: View) {
