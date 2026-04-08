@@ -32,7 +32,7 @@ import java.util.UUID
  * @param broadcaster The mesh transport layer (NearbyManager wrapper).
  */
 class EvacRepository(
-    private val evacDao: EvacDao,
+    internal val evacDao: EvacDao,
     private val broadcaster: MeshNetworkBroadcaster
 ) {
 
