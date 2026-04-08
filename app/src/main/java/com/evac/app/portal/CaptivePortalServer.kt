@@ -33,9 +33,29 @@ class CaptivePortalServer(
     }
 
     private fun servePage(): Response {
-        val bulletins = runBlocking {
+        val legacyBulletins = runBlocking {
             database.messageDao().getBulletinsAndAcks().first()
         }
+
+        // Also pull from the Reverse Mesh bulletins table
+        val reverseMeshBulletins = runBlocking {
+            database.evacDao().getAllActiveBulletins(System.currentTimeMillis())
+        }
+
+        // Convert Reverse Mesh bulletins to MessageEntity for rendering
+        val meshEntities = reverseMeshBulletins.map { b ->
+            MessageEntity(
+                id = b.uuid,
+                type = "BULLETIN",
+                timestamp = b.timestamp,
+                body = b.message
+            )
+        }
+
+        // Merge, deduplicate, sort newest first
+        val bulletins = (legacyBulletins + meshEntities)
+            .distinctBy { it.id }
+            .sortedByDescending { it.timestamp }
 
         val bulletinHtml = if (bulletins.isEmpty()) {
             "<p>No bulletins at this time.</p>"
