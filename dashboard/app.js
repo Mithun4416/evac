@@ -26,6 +26,8 @@ let bulletinCount = 0;
 let ackCount = 0;
 const activityEntries = [];
 let firestoreListeners = [];
+let heatLayer = null;
+let isHeatmapActive = false;
 
 // =============================================================================
 // AUTH
@@ -219,24 +221,22 @@ function attachFirestoreListeners() {
 
             if (change.type === 'added') {
                 sosData[id] = data;
-                updateMarker(id, data);
-                addLog('🆘', `New SOS: <strong>${data.status}</strong> — ${data.people_count || 1} people at [${(data.lat || 0).toFixed(4)}, ${(data.lng || 0).toFixed(4)}]`);
+                const ts = parseTs(data.timestamp);
+                addLog('🆘', `New SOS: <strong>${data.status}</strong> — ${data.people_count || 1} people at [${(data.lat || 0).toFixed(6)}, ${(data.lng || 0).toFixed(6)}]`, ts);
                 updateLastSync();
             }
             if (change.type === 'modified') {
                 sosData[id] = data;
-                updateMarker(id, data);
-                addLog('🔄', `SOS updated: <strong>${id.substring(0, 8)}...</strong>`);
+                const ts = parseTs(data.timestamp);
+                addLog('🔄', `SOS updated: <strong>${id.substring(0, 8)}...</strong>`, ts);
                 updateLastSync();
             }
             if (change.type === 'removed') {
                 delete sosData[id];
-                removeMarker(id);
                 addLog('✅', `SOS resolved: <strong>${id.substring(0, 8)}...</strong>`);
             }
         });
-        refreshSosFeed();
-        refreshStats();
+        refreshUi();
     }, (err) => {
         console.error('SOS listener error:', err);
         document.getElementById('sys-firestore').textContent = 'Error';
@@ -246,13 +246,13 @@ function attachFirestoreListeners() {
     // Bulletins listener (count only)
     const unsubBulletins = db.collection('bulletins').onSnapshot((snapshot) => {
         bulletinCount = snapshot.size;
-        refreshStats();
+        refreshUi();
     });
 
     // ACKs listener (count only)
     const unsubAcks = db.collection('acks').onSnapshot((snapshot) => {
         ackCount = snapshot.size;
-        refreshStats();
+        refreshUi();
     });
 
     firestoreListeners.push(unsubSos, unsubBulletins, unsubAcks);
@@ -268,80 +268,95 @@ function updateLastSync() {
 // SOS FEED (Right Column)
 // =============================================================================
 
-function refreshSosFeed() {
+function refreshUi() {
     const list = document.getElementById('sos-list');
-    if (!list) { console.error('sos-list element not found'); return; }
-
-    console.log('[SOS Feed] refreshSosFeed called. sosData keys:', Object.keys(sosData).length);
-
-    // Show ALL messages from sosData — cleanup button handles deletion
-    const arr = Object.entries(sosData).map(([id, d]) => ({ id, ...d }));
-
-    // Sort: Newest first (fallback to 0 if timestamp missing)
-    arr.sort((a, b) => {
-        const ta = parseTs(a.timestamp) || 0;
-        const tb = parseTs(b.timestamp) || 0;
-        return tb - ta;
-    });
-
-    console.log('[SOS Feed] After sort:', arr.length, 'entries');
-
-    if (arr.length === 0) {
-        list.innerHTML = '<div class="no-data">No active SOS signals</div>';
-        return;
-    }
-
-    list.innerHTML = '';
-    arr.forEach(sos => {
-        try {
-            const div = document.createElement('div');
-            div.className = `sos-card status-${(sos.status || 'UNKNOWN').toUpperCase()}`;
-            div.onclick = () => {
-                if (sos.lat && sos.lng && map) {
-                    map.setView([sos.lat, sos.lng], 15);
-                    if (markers[sos.id]) markers[sos.id].openPopup();
-                }
-            };
-            const timeAgo = getTimeAgo(parseTs(sos.timestamp));
-            const latStr = (sos.lat != null && sos.lng != null)
-                ? `[${Number(sos.lat).toFixed(4)}, ${Number(sos.lng).toFixed(4)}]`
-                : 'No GPS';
-            div.innerHTML = `
-                <div class="sos-card-header">
-                    <span class="sos-status-badge">${(sos.status || 'UNKNOWN').toUpperCase()}</span>
-                    <span class="sos-time">${timeAgo}</span>
-                </div>
-                <div style="font-size: 10px; color: #00d4ff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all;">
-                    ID: ${sos.device_id || sos.deviceId || sos.id.substring(0, 16)}
-                </div>
-                <div class="sos-meta">
-                    <span>👥 ${sos.people_count || sos.peopleCount || 1}</span>
-                    <span>🔋 ${sos.battery_pct || sos.batteryPct || '?'}%</span>
-                    <span>📍 ${latStr}</span>
-                </div>
-                ${sos.note ? `<div class="sos-note">"${sos.note}"</div>` : ''}
-            `;
-            list.appendChild(div);
-        } catch (err) {
-            console.error('[SOS Feed] Error rendering card:', sos.id, err);
+    
+    // Deduplicate by deviceId, keeping the latest document
+    const deviceMap = {};
+    Object.entries(sosData).forEach(([docId, data]) => {
+        const dId = data.device_id || data.deviceId || docId;
+        const ts = parseTs(data.timestamp) || 0;
+        if (!deviceMap[dId] || ts > deviceMap[dId]._ts) {
+            deviceMap[dId] = { id: docId, ...data, _ts: ts, deviceId: dId };
         }
     });
-}
 
-// =============================================================================
-// STATS (Left Column)
-// =============================================================================
-
-function refreshStats() {
-    const allSos = Object.values(sosData);
-    const active = allSos.length;
-    const critical = allSos.filter(s => s.status === 'MEDICAL' || s.status === 'TRAPPED').length;
-    const people = allSos.reduce((sum, s) => sum + (s.people_count || s.peopleCount || 1), 0);
-
+    const uniqueSos = Object.values(deviceMap);
+    
+    // Stats: Mesh Nodes Online = active devices reporting (min 1 for gateway itself)
+    const active = uniqueSos.length;
+    const critical = uniqueSos.filter(s => s.status === 'MEDICAL' || s.status === 'TRAPPED').length;
+    const people = uniqueSos.reduce((sum, s) => sum + (s.people_count || s.peopleCount || 1), 0);
+    
     animateNumber('stat-active', active);
     animateNumber('stat-critical', critical);
     animateNumber('stat-people', people);
     animateNumber('stat-bulletins', bulletinCount);
+    animateNumber('stat-nodes', Math.max(1, active)); 
+
+    // Map Markers: remove stale, update active
+    const currentDeviceIds = new Set(uniqueSos.map(s => s.deviceId));
+    Object.keys(markers).forEach(dId => {
+        if (!currentDeviceIds.has(dId)) {
+            removeMarker(dId);
+        }
+    });
+    uniqueSos.forEach(sos => {
+        updateMarker(sos.deviceId, sos);
+    });
+
+    // SOS Feed display
+    uniqueSos.sort((a, b) => b._ts - a._ts);
+    if (uniqueSos.length === 0) {
+        if (list) list.innerHTML = '<div class="no-data">No active SOS signals</div>';
+    } else {
+        if (list) list.innerHTML = '';
+        uniqueSos.forEach(sos => {
+            try {
+                const div = document.createElement('div');
+                div.className = `sos-card status-${(sos.status || 'UNKNOWN').toUpperCase()}`;
+                div.onclick = () => {
+                    if (sos.lat && sos.lng && map) {
+                        map.setView([sos.lat, sos.lng], 15);
+                        if (markers[sos.deviceId]) markers[sos.deviceId].openPopup();
+                    }
+                };
+                
+                // Fixed accurate time sync relative to message origination
+                const msgTime = new Date(sos._ts);
+                const timeStr = isNaN(msgTime.getTime()) ? '—' : msgTime.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                
+                const latStr = (sos.lat != null && sos.lng != null)
+                    ? `[${Number(sos.lat).toFixed(6)}, ${Number(sos.lng).toFixed(6)}]`
+                    : 'No GPS';
+                
+                div.innerHTML = `
+                    <div class="sos-card-header">
+                        <span class="sos-status-badge">${(sos.status || 'UNKNOWN').toUpperCase()}</span>
+                        <span class="sos-time" style="font-family: var(--mono); color: #fff;">${timeStr}</span>
+                    </div>
+                    <div style="font-size: 10px; color: #00d4ff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all;">
+                        ID: ${sos.deviceId.substring(0, 16)}
+                    </div>
+                    <div class="sos-meta">
+                        <span>👥 ${sos.people_count || sos.peopleCount || 1}</span>
+                        <span>🔋 ${sos.battery_pct || sos.batteryPct || '?'}%</span>
+                        <span>📍 ${latStr}</span>
+                    </div>
+                    ${sos.note ? `<div class="sos-note">"${sos.note}"</div>` : ''}
+                `;
+                if (list) list.appendChild(div);
+            } catch (err) {
+                console.error('[SOS Feed] Error rendering card:', sos.deviceId, err);
+            }
+        });
+    }
+
+    // Update Heatmap if active (use ALL messages for area/intensity based on # of messages)
+    if (isHeatmapActive && heatLayer && map) {
+        const pts = Object.values(sosData).filter(s => s.lat != null && s.lng != null).map(s => [s.lat, s.lng, 1]);
+        heatLayer.setLatLngs(pts);
+    }
 }
 
 function animateNumber(elId, target) {
@@ -358,28 +373,61 @@ function animateNumber(elId, target) {
 // ACTIVITY LOG (Center Bottom)
 // =============================================================================
 
-function addLog(icon, message) {
-    const log = document.getElementById('activity-log');
-    const noData = log.querySelector('.no-data');
-    if (noData) noData.remove();
+function addLog(icon, message, eventTs) {
+    const timestamp = eventTs ? new Date(eventTs) : new Date();
 
-    const now = new Date();
-    const time = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-
-    const entry = document.createElement('div');
-    entry.className = 'log-entry';
-    entry.innerHTML = `
-        <span class="log-icon">${icon}</span>
-        <span class="log-time">${time}</span>
-        <span class="log-msg">${message}</span>
-    `;
-
-    // Prepend (newest first)
-    log.insertBefore(entry, log.firstChild);
+    activityEntries.push({ icon, message, ts: timestamp.getTime() });
+    // Sort descending (newest first)
+    activityEntries.sort((a, b) => b.ts - a.ts);
 
     // Cap at 50 entries
-    while (log.children.length > 50) {
-        log.removeChild(log.lastChild);
+    if (activityEntries.length > 50) {
+        activityEntries.length = 50;
+    }
+
+    renderLogs();
+}
+
+function renderLogs() {
+    const log = document.getElementById('activity-log');
+    if (!log) return;
+    
+    log.innerHTML = '';
+    
+    if (activityEntries.length === 0) {
+        log.innerHTML = '<div class="no-data">Waiting for events...</div>';
+        return;
+    }
+
+    activityEntries.forEach(entry => {
+        const time = new Date(entry.ts).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `
+            <span class="log-icon">${entry.icon}</span>
+            <span class="log-time" style="font-family: var(--mono); color: #999; font-size: 11px; margin-right: 8px;">${time}</span>
+            <span class="log-msg">${entry.message}</span>
+        `;
+        log.appendChild(div);
+    });
+}
+
+function toggleHeatmap() {
+    isHeatmapActive = !isHeatmapActive;
+    const btn = document.getElementById('toggle-heatmap-btn');
+    if (isHeatmapActive) {
+        btn.textContent = 'Hide Heatmap';
+        btn.style.background = '#ff003c';
+        
+        const pts = Object.values(sosData).filter(s => s.lat != null && s.lng != null).map(s => [s.lat, s.lng, 1]);
+        heatLayer = L.heatLayer(pts, {radius: 40, blur: 25, maxZoom: 17}).addTo(map);
+    } else {
+        btn.textContent = 'Toggle Heatmap';
+        btn.style.background = '';
+        if (heatLayer && map) {
+            map.removeLayer(heatLayer);
+        }
+        heatLayer = null;
     }
 }
 

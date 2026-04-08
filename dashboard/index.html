@@ -114,6 +114,9 @@
                     <span class="label">Region</span>
                     <span class="value">asia-south1</span>
                 </div>
+                <div class="info-row" style="margin-top: 10px;">
+                    <button id="toggle-heatmap-btn" class="btn btn-primary" onclick="toggleHeatmap()" style="width: 100%; padding: 6px; font-size: 12px;">Toggle Heatmap</button>
+                </div>
             </div>
         </div>
 
@@ -215,6 +218,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
     <!-- Firebase JS (compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
