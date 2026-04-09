@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Blue house shelter icon -->
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M12,3L2,12h3v8h6v-5h2v5h6v-8h3z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,6.5l-5,4.5v6h3v-4h4v4h3v-6z" />
+</vector>

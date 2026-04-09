@@ -118,6 +118,7 @@ function showCommandCenter(user) {
             startClock();
             startFooterDate();
             attachFirestoreListeners();
+            initSafeSpots();
             addLog('🟢', 'System online. Operator authenticated.');
             // Refresh relative times every 15 seconds
             setInterval(refreshUi, 15000);
@@ -156,6 +157,14 @@ function initMap() {
         attribution: '© OpenStreetMap',
         maxZoom: 19
     }).addTo(map);
+
+    map.on('click', (e) => {
+        const tab = document.getElementById('safespot-tab');
+        if (tab && tab.classList.contains('active')) {
+            document.getElementById('spotLat').value = e.latlng.lat.toFixed(6);
+            document.getElementById('spotLng').value = e.latlng.lng.toFixed(6);
+        }
+    });
 
     // Fix Leaflet sizing inside grid
     setTimeout(() => map.invalidateSize(), 200);
@@ -515,6 +524,7 @@ function switchTab(tabId) {
     const buttons = document.querySelectorAll('.tab-btn');
     if (tabId === 'bulletin-tab') buttons[0].classList.add('active');
     if (tabId === 'ack-tab') buttons[1].classList.add('active');
+    if (tabId === 'safespot-tab') buttons[2].classList.add('active');
 }
 
 // =============================================================================
@@ -731,3 +741,168 @@ window.addEventListener('load', () => {
 });
 
 console.log('🚨 EVAC Command Center v1.0 loaded.');
+
+// =============================================================================
+// SAFE SPOTS
+// =============================================================================
+
+let safeSpots = [];
+let spotMarkers = {};
+
+function initSafeSpots() {
+    firestoreListeners.push(
+        db.collection('safespots').onSnapshot((snapshot) => {
+            safeSpots = [];
+            snapshot.forEach(doc => {
+                safeSpots.push(doc.data());
+            });
+            renderSafeSpots();
+            renderSpotMarkers();
+        }, (err) => {
+            console.error('SafeSpot listener error:', err);
+        })
+    );
+}
+
+function addSafeSpot() {
+    const name = document.getElementById('spotName').value.trim();
+    const lat = parseFloat(document.getElementById('spotLat').value);
+    const lng = parseFloat(document.getElementById('spotLng').value);
+    const type = document.getElementById('spotType').value;
+
+    if (!name || isNaN(lat) || isNaN(lng)) {
+        alert('Please provide Name, Latitude, and Longitude. Click on the map to set coordinates automatically.');
+        return;
+    }
+
+    const spot = {
+        id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'spot_' + Date.now(),
+        name: name,
+        latitude: lat,
+        longitude: lng,
+        type: type,
+        is_active: true,
+        updated_at: Date.now(),
+        signature: null
+    };
+
+    db.collection('safespots').doc(spot.id).set(spot)
+        .then(() => {
+            addLog('📍', `SafeSpot added: <strong>${name}</strong>`);
+        })
+        .catch(err => {
+            alert('Failed to add SafeSpot: ' + err.message);
+        });
+
+    document.getElementById('spotName').value = '';
+    document.getElementById('spotLat').value = '';
+    document.getElementById('spotLng').value = '';
+}
+
+function removeSafeSpot(id) {
+    if(!confirm('Are you sure you want to delete this SafeSpot?')) return;
+    const spot = safeSpots.find(s => s.id === id);
+    
+    db.collection('safespots').doc(id).delete()
+        .then(() => {
+            if(spot) addLog('🗑️', `SafeSpot removed: <strong>${spot.name}</strong>`);
+        })
+        .catch(err => {
+            alert('Failed to delete SafeSpot: ' + err.message);
+        });
+}
+
+function renderSafeSpots() {
+    const container = document.getElementById('safespot-registry');
+    if (!container) return;
+
+    if (safeSpots.length === 0) {
+        container.innerHTML = '<div style="font-size:11px; color:#6a7090; text-align:center; padding-top: 10px;">No SafeSpots added. Click map to define.</div>';
+        return;
+    }
+
+    const sorted = [...safeSpots].sort((a,b) => b.updated_at - a.updated_at);
+
+    container.innerHTML = sorted.map(s => `
+        <div style="background:rgba(0,212,255,0.05); padding:10px; border-radius:6px; margin-bottom:8px; border: 1px solid rgba(0,212,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <strong style="font-size:12px; color:var(--primary);">${s.name}</strong>
+                <div style="font-size:9px; color:var(--text-dim); margin-top:2px;">
+                    ${s.type} · [${s.latitude.toFixed(4)}, ${s.longitude.toFixed(4)}]
+                </div>
+            </div>
+            <button onclick="removeSafeSpot('${s.id}')" style="background:none; border:none; padding:4px; font-size:14px; cursor:pointer;" title="Delete">🗑️</button>
+        </div>
+    `).join('');
+}
+
+function renderSpotMarkers() {
+    Object.values(spotMarkers).forEach(m => map.removeLayer(m));
+    spotMarkers = {};
+
+    safeSpots.forEach(s => {
+        const typeColors = {
+            'SHELTER': '#00d4ff', 'MEDICAL': '#ff003c',
+            'FOOD': '#00ff88', 'WATER': '#00d4ff', 'POLICE': '#ff9500'
+        };
+        const color = typeColors[s.type] || '#00d4ff';
+
+        const emojis = {
+            'SHELTER': '🏠', 'MEDICAL': '🏥',
+            'FOOD': '🍽️', 'WATER': '💧', 'POLICE': '🚔'
+        };
+        const emoji = emojis[s.type] || '📍';
+
+        const customIcon = L.divIcon({
+            html: `<div style="font-size:20px; text-shadow:0 0 5px #000; padding:2px; background: ${color}40; border-radius:50%; border:1px solid ${color}; display:flex; align-items:center; justify-content:center; width:30px; height:30px;">${emoji}</div>`,
+            className: 'safespot-custom-icon',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+
+        const marker = L.marker([s.latitude, s.longitude], { icon: customIcon }).addTo(map);
+
+        marker.bindPopup(`
+            <div style="font-family: var(--sans);">
+                <strong style="color: ${color}; font-size:14px;">${s.name}</strong><br>
+                <div style="font-size:11px; margin-top:4px;">Type: ${s.type}</div>
+                <div style="font-size:10px; color:#aaa;">${s.latitude.toFixed(4)}, ${s.longitude.toFixed(4)}</div>
+            </div>
+        `);
+        spotMarkers[s.id] = marker;
+    });
+}
+
+function exportSafeSpotsJson() {
+    if (safeSpots.length === 0) { alert('No safe spots to export.'); return; }
+    const json = JSON.stringify(safeSpots, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'safespots.json'; a.click();
+    URL.revokeObjectURL(url);
+    addLog('📦', `Exported ${safeSpots.length} SafeSpots to JSON.`);
+}
+
+function importSafeSpotsJson(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!Array.isArray(data)) throw new Error("Expected JSON array");
+            let inserted = 0;
+            data.forEach(item => {
+                if (item.id && item.name && item.latitude != null && item.longitude != null) {
+                    db.collection('safespots').doc(item.id).set(item);
+                    inserted++;
+                }
+            });
+            addLog('📂', `Imported ${inserted} SafeSpots from JSON.`);
+        } catch (err) {
+            alert('Import failed: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+}

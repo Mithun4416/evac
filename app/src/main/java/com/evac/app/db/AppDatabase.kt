@@ -9,14 +9,16 @@ import androidx.room.RoomDatabase
     entities = [
         MessageEntity::class,
         AckEntity::class,
-        BulletinEntity::class
+        BulletinEntity::class,
+        SafeSpotEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun messageDao(): MessageDao
+    abstract fun safeSpotDao(): SafeSpotDao
 
     /** DAO for the Reverse Mesh (targeted ACKs + broadcast Bulletins). */
     abstract fun evacDao(): EvacDao

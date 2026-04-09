@@ -166,6 +166,7 @@
                 <div class="tabs">
                     <button class="tab-btn active" onclick="switchTab('bulletin-tab')">📢 Bulletin</button>
                     <button class="tab-btn" onclick="switchTab('ack-tab')">✅ ACK</button>
+                    <button class="tab-btn" onclick="switchTab('safespot-tab')">📍 SafeSpots</button>
                 </div>
 
                 <!-- Bulletin Tab -->
@@ -200,6 +201,45 @@
                         <textarea id="ackBody" placeholder="Message to send back to victim..." rows="3"></textarea>
                     </div>
                     <button class="btn btn-success" onclick="sendAck()">Send Acknowledgment</button>
+                </div>
+
+                <!-- SafeSpot Tab -->
+                <div class="tab-content" id="safespot-tab">
+                    <div class="form-group">
+                        <label>Spot Name</label>
+                        <input type="text" id="spotName" placeholder="e.g. City Hall Shelter">
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label>Latitude</label>
+                            <input type="number" id="spotLat" step="0.0001" placeholder="Map Click">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Longitude</label>
+                            <input type="number" id="spotLng" step="0.0001" placeholder="Map Click">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="spotType">
+                            <option value="SHELTER">🏠 Shelter</option>
+                            <option value="MEDICAL">🏥 Medical</option>
+                            <option value="FOOD">🍽️ Food</option>
+                            <option value="WATER">💧 Water</option>
+                            <option value="POLICE">🚔 Police</option>
+                        </select>
+                    </div>
+                    <button class="btn" style="background-color: var(--primary); color: #000; font-weight: bold;" onclick="addSafeSpot()">+ Add Spot</button>
+
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button class="btn" style="flex:1; background:rgba(255,255,255,0.1); color:#fff;" onclick="document.getElementById('importSpots').click()">📂 Import</button>
+                        <button class="btn btn-success" style="flex:1;" onclick="exportSafeSpotsJson()">📦 Export JSON</button>
+                        <input type="file" id="importSpots" accept=".json" style="display:none" onchange="importSafeSpotsJson(event)">
+                    </div>
+
+                    <div id="safespot-registry" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;">
+                        <!-- Safe spots list -->
+                    </div>
                 </div>
             </div>
         </div>

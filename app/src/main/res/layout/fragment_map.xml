@@ -4,11 +4,39 @@
     android:layout_height="match_parent"
     android:background="@color/evac_dark">
 
+    <!-- OSMDroid Map -->
     <org.osmdroid.views.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <!-- Haversine Fallback List (initially hidden) -->
+    <LinearLayout
+        android:id="@+id/fallback_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#0D1117"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📍 Nearby Safe Spots (Offline)"
+            android:textColor="#58A6FF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="#161B22"
+            android:padding="12dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_safespot_fallback"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false" />
+    </LinearLayout>
+
+    <!-- Map status bar -->
     <TextView
         android:id="@+id/tvMapStatus"
         android:layout_width="wrap_content"
@@ -21,6 +49,7 @@
         android:textSize="12sp"
         android:text="SOS Map — Field Responder View"/>
 
+    <!-- Bottom controls panel -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,6 +67,16 @@
             android:padding="8dp"
             android:layout_marginBottom="8dp"/>
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/sw_list_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📋 List View"
+            android:textColor="@color/white"
+            android:background="#AA000000"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp"/>
+
         <Spinner
             android:id="@+id/spinner_disaster_type"
             android:layout_width="match_parent"
@@ -45,13 +84,21 @@
             android:background="#AA000000"
             android:padding="8dp"
             android:layout_marginBottom="8dp"/>
-            
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_safe_spots"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Show Safe Spots"
             android:backgroundTint="#43A047"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_sync_safespots"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⟳ Sync SafeSpots"
+            android:backgroundTint="#1E88E5"
+            android:layout_marginTop="4dp"/>
     </LinearLayout>
 
 </FrameLayout>

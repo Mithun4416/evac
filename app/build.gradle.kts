@@ -71,6 +71,12 @@ dependencies {
     // NanoHTTPD
     implementation("org.nanohttpd:nanohttpd:2.3.1")
 
+    // OkHttp (SafeSpot HTTP sync)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Gson (JSON parsing for SafeSpot payloads)
+    implementation("com.google.code.gson:gson:2.10.1")
+
     // TweetNaCl – Ed25519 (future scope — not needed for core mesh demo)
     // implementation("com.github.AukeB:TweetNaclFast-java:1.0.0")
 
