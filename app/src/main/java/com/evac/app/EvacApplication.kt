@@ -4,6 +4,13 @@ import android.app.Application
 import android.util.Log
 import com.evac.app.db.AppDatabase
 import com.evac.app.mesh.MeshService
+import com.evac.app.sync.SafeSpotSyncWorker
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 
 class EvacApplication : Application() {
 
@@ -44,5 +51,21 @@ class EvacApplication : Application() {
         // Start MeshService as a foreground service
         MeshService.start(this)
         Log.i(TAG, "MeshService started")
+
+        // Schedule SafeSpot background sync
+        val syncConstraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+            
+        val syncRequest = PeriodicWorkRequestBuilder<SafeSpotSyncWorker>(15, TimeUnit.MINUTES)
+            .setConstraints(syncConstraints)
+            .build()
+            
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            SafeSpotSyncWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            syncRequest
+        )
+        Log.i(TAG, "SafeSpotSyncWorker scheduled")
     }
 }

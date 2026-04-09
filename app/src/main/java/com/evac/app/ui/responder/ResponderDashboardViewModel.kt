@@ -26,38 +26,35 @@ class ResponderDashboardViewModel(application: Application) : AndroidViewModel(a
         dao.getSosMessages(),
         _currentLocation
     ) { messages, loc ->
-        if (loc == null) return@combine emptyList<SosTask>()
-
         val currentUserEmail = auth.currentUser?.email ?: return@combine emptyList<SosTask>()
         val tasks = mutableListOf<SosTask>()
         var closestUnassignedId: String? = null
         var minDistance = Float.MAX_VALUE
 
         for (msg in messages) {
-            val lat = msg.lat ?: continue
-            val lng = msg.lng ?: continue
-
-            val results = FloatArray(1)
-            Location.distanceBetween(loc.latitude, loc.longitude, lat, lng, results)
-            val dist = results[0]
-
-            // 5km radius filter
-            if (dist > 5000f) continue
-
             val isAssignedToMe = msg.assignedTo == currentUserEmail
+            var dist = -1f // Represents unknown distance
 
-            // Keep track of the nearest unassigned task to auto-claim it
-            if (msg.assignedTo == null && dist < minDistance) {
-                minDistance = dist
-                closestUnassignedId = msg.id
+            if (loc != null && msg.lat != null && msg.lng != null) {
+                val results = FloatArray(1)
+                Location.distanceBetween(loc.latitude, loc.longitude, msg.lat, msg.lng, results)
+                dist = results[0]
+
+                // Optional: strictly 5km radius filter only if location is verified
+                if (dist > 5000f) continue
+                
+                if (msg.assignedTo == null && dist < minDistance) {
+                    minDistance = dist
+                    closestUnassignedId = msg.id
+                }
             }
 
             tasks.add(
                 SosTask(
                     id = msg.id,
                     status = msg.status ?: "UNKNOWN",
-                    lat = lat,
-                    lng = lng,
+                    lat = msg.lat ?: 0.0,
+                    lng = msg.lng ?: 0.0,
                     peopleCount = msg.peopleCount ?: 1,
                     batteryPct = msg.batteryPct,
                     note = msg.note,
@@ -69,12 +66,17 @@ class ResponderDashboardViewModel(application: Application) : AndroidViewModel(a
             )
         }
 
-        // Auto-claim the closest unassigned task
-        if (closestUnassignedId != null) {
+        // Auto-claim the closest unassigned task if location exists
+        if (loc != null && closestUnassignedId != null) {
             claimTask(closestUnassignedId, currentUserEmail)
         }
 
-        tasks.sortedBy { it.distanceMeters }
+        // Sort by distance if loc exists, otherwise sort by newest timestamp
+        if (loc != null) {
+            tasks.sortedBy { it.distanceMeters }
+        } else {
+            tasks.sortedByDescending { it.timestamp }
+        }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun updateLocation(location: Location) {

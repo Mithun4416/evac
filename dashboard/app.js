@@ -22,6 +22,7 @@ const auth = firebase.auth();
 let map = null;
 const markers = {};
 const sosData = {};
+const respondersData = {};
 let bulletinCount = 0;
 let ackCount = 0;
 const activityEntries = [];
@@ -116,6 +117,7 @@ function showCommandCenter(user) {
             startClock();
             startFooterDate();
             attachFirestoreListeners();
+            initSafeSpots();
             addLog('🟢', 'System online. Operator authenticated.');
         }, 100);
     }, 2500);
@@ -152,6 +154,14 @@ function initMap() {
         attribution: '© OpenStreetMap',
         maxZoom: 19
     }).addTo(map);
+
+    map.on('click', (e) => {
+        const tab = document.getElementById('safespot-tab');
+        if (tab && tab.classList.contains('active')) {
+            document.getElementById('spotLat').value = e.latlng.lat.toFixed(6);
+            document.getElementById('spotLng').value = e.latlng.lng.toFixed(6);
+        }
+    });
 
     // Fix Leaflet sizing inside grid
     setTimeout(() => map.invalidateSize(), 200);
@@ -305,49 +315,103 @@ function refreshUi() {
         updateMarker(sos.deviceId, sos);
     });
 
-    // SOS Feed display
-    uniqueSos.sort((a, b) => b._ts - a._ts);
-    if (uniqueSos.length === 0) {
-        if (list) list.innerHTML = '<div class="no-data">No active SOS signals</div>';
+    // -------------------------------------------------------------------------
+    // UNIFIED LIVE FEED (Combines Active SOS + System Actions)
+    // -------------------------------------------------------------------------
+    if (list) list.innerHTML = '';
+    
+    const feedItems = [];
+
+    // 1. Add Active SOS Signals as Rich Cards
+    uniqueSos.forEach(sos => {
+        feedItems.push({
+            type: 'SOS_CARD',
+            ts: sos._ts,
+            data: sos
+        });
+    });
+
+    // 2. Add System Actions (Bulletins, ACKs, Resolves) from Activity Log
+    // We skip 'New SOS' and 'SOS updated' logs to prevent duplicate clutter, 
+    // since the Rich Cards already represent them.
+    activityEntries.forEach(entry => {
+        if (entry.message.includes('New SOS') || entry.message.includes('SOS updated')) return;
+        feedItems.push({
+            type: 'LOG_ENTRY',
+            ts: entry.ts,
+            data: entry
+        });
+    });
+
+    // Sort descending by timestamp
+    feedItems.sort((a, b) => b.ts - a.ts);
+
+    if (feedItems.length === 0) {
+        if (list) list.innerHTML = '<div class="no-data">No active signals or events</div>';
     } else {
-        if (list) list.innerHTML = '';
-        uniqueSos.forEach(sos => {
-            try {
+        feedItems.forEach(item => {
+            if (item.type === 'SOS_CARD') {
+                const sos = item.data;
+                try {
+                    const div = document.createElement('div');
+                    div.className = `sos-card status-${(sos.status || 'UNKNOWN').toUpperCase()}`;
+                    div.onclick = () => {
+                        if (sos.lat && sos.lng && map) {
+                            map.flyTo([sos.lat, sos.lng], 17, { animate: true, duration: 1.5 });
+                            if (markers[sos.deviceId]) markers[sos.deviceId].openPopup();
+                        }
+                    };
+                    
+                    // Show both original time and relative time
+                    const msgTime = new Date(item.ts);
+                    const absTime = isNaN(msgTime.getTime()) ? '\u2014' : msgTime.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                    const relTime = getTimeAgo(item.ts);
+                    
+                    const latStr = (sos.lat != null && sos.lng != null)
+                        ? `[${Number(sos.lat).toFixed(6)}, ${Number(sos.lng).toFixed(6)}]`
+                        : 'No GPS';
+                    
+                    div.innerHTML = `
+                        <div class="sos-card-header">
+                            <span class="sos-status-badge">${(sos.status || 'UNKNOWN').toUpperCase()}</span>
+                            <span class="sos-time" style="font-family: var(--mono); text-align:right; line-height:1.4;">
+                                <span style="font-size:11px; color:#fff;">${absTime}</span><br>
+                                <span style="font-size:9px; color:#6a7090;">${relTime}</span>
+                            </span>
+                        </div>
+                        <div style="font-size: 10px; color: #00d4ff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all; display:flex; align-items:flex-start; gap:6px;">
+                            <span style="flex:1;">ID: ${sos.deviceId}</span>
+                            <button class="copy-btn" title="Copy Device ID" onclick="navigator.clipboard.writeText('${sos.deviceId}').then(() => { this.style.color='#00ff88'; setTimeout(()=>this.style.color='', 1000); }); event.stopPropagation();" style="background:transparent; border:none; color:var(--text-dim); cursor:pointer; font-size:12px; padding:2px;">📋</button>
+                        </div>
+                        <div class="sos-meta">
+                            <span>👥 ${sos.people_count || sos.peopleCount || 1}</span>
+                            <span>🔋 ${sos.battery_pct || sos.batteryPct || '?'}%</span>
+                            <span>📍 ${latStr}</span>
+                        </div>
+                        ${sos.note ? `<div class="sos-note">"${sos.note}"</div>` : ''}
+                    `;
+                    list.appendChild(div);
+                } catch (err) {
+                    console.error('[SOS Feed] Error rendering card:', sos.deviceId, err);
+                }
+            } else if (item.type === 'LOG_ENTRY') {
+                const entry = item.data;
                 const div = document.createElement('div');
-                div.className = `sos-card status-${(sos.status || 'UNKNOWN').toUpperCase()}`;
-                div.onclick = () => {
-                    if (sos.lat && sos.lng && map) {
-                        map.setView([sos.lat, sos.lng], 15);
-                        if (markers[sos.deviceId]) markers[sos.deviceId].openPopup();
-                    }
-                };
+                div.className = 'unified-log-entry';
+                // Inline styles for the system log entries in the live feed
+                div.style.cssText = 'background: rgba(0,0,0,0.2); border-left: 2px solid var(--text-dim); padding: 8px 10px; margin-bottom: 8px; border-radius: 0 4px 4px 0; display: flex; align-items: flex-start; gap: 8px; font-size: 11px;';
                 
-                // Fixed accurate time sync relative to message origination
-                const msgTime = new Date(sos._ts);
+                const msgTime = new Date(item.ts);
                 const timeStr = isNaN(msgTime.getTime()) ? '—' : msgTime.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
                 
-                const latStr = (sos.lat != null && sos.lng != null)
-                    ? `[${Number(sos.lat).toFixed(6)}, ${Number(sos.lng).toFixed(6)}]`
-                    : 'No GPS';
-                
                 div.innerHTML = `
-                    <div class="sos-card-header">
-                        <span class="sos-status-badge">${(sos.status || 'UNKNOWN').toUpperCase()}</span>
-                        <span class="sos-time" style="font-family: var(--mono); color: #fff;">${timeStr}</span>
+                    <span style="font-size: 14px; line-height: 1;">${entry.icon}</span>
+                    <div style="flex: 1;">
+                        <div style="color: #fff; line-height: 1.3;">${entry.message}</div>
                     </div>
-                    <div style="font-size: 10px; color: #00d4ff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all;">
-                        ID: ${sos.deviceId.substring(0, 16)}
-                    </div>
-                    <div class="sos-meta">
-                        <span>👥 ${sos.people_count || sos.peopleCount || 1}</span>
-                        <span>🔋 ${sos.battery_pct || sos.batteryPct || '?'}%</span>
-                        <span>📍 ${latStr}</span>
-                    </div>
-                    ${sos.note ? `<div class="sos-note">"${sos.note}"</div>` : ''}
+                    <span style="font-size: 10px; color: #999; font-family: var(--mono); white-space: nowrap;">${timeStr}</span>
                 `;
-                if (list) list.appendChild(div);
-            } catch (err) {
-                console.error('[SOS Feed] Error rendering card:', sos.deviceId, err);
+                list.appendChild(div);
             }
         });
     }
@@ -445,6 +509,7 @@ function switchTab(tabId) {
     const buttons = document.querySelectorAll('.tab-btn');
     if (tabId === 'bulletin-tab') buttons[0].classList.add('active');
     if (tabId === 'ack-tab') buttons[1].classList.add('active');
+    if (tabId === 'safespot-tab') buttons[2].classList.add('active');
 }
 
 // =============================================================================
@@ -555,20 +620,98 @@ function parseTs(ts) {
     if (!ts) return 0;
     if (typeof ts === 'string') return new Date(ts).getTime();
     if (typeof ts === 'object' && ts.seconds) return ts.seconds * 1000; // Firestore Timestamp
+
+    // Fix for old data stored with IST timezone bug (off by +5:30 = 19800000ms).
+    // Old Android code stored local-time epoch instead of UTC epoch.
+    // If timestamp is more than 5h30m behind current time, check if adding offset fixes it.
+    const IST_OFFSET_MS = 19800000; // 5 hours 30 minutes
+    const corrected = ts + IST_OFFSET_MS;
+    // Use corrected if it's in the past but closer to now (old bug data)
+    // If corrected would be in the future, use original (already fixed data)
+    if (corrected <= Date.now()) {
+        return corrected;
+    }
     return ts;
 }
 
 function getTimeAgo(timestamp) {
     if (!timestamp) return '—';
     const diff = Date.now() - timestamp;
-    const mins = Math.floor(diff / 60000);
+    if (diff < 0) return 'Just now';
+    const secs = Math.floor(diff / 1000);
+    const mins = Math.floor(secs / 60);
     const hrs = Math.floor(mins / 60);
     const days = Math.floor(hrs / 24);
     if (days > 0) return `${days}d ago`;
-    if (hrs > 0) return `${hrs}h ago`;
+    if (hrs > 0) return `${hrs}h ${mins % 60}m ago`;
     if (mins > 0) return `${mins}m ago`;
+    if (secs >= 10) return `${secs}s ago`;
     return 'Just now';
 }
+
+// =============================================================================
+// RESPONDERS UI
+// =============================================================================
+
+function refreshRespondersUi() {
+    const container = document.getElementById('responder-list');
+    if (!container) return;
+
+    const responders = Object.values(respondersData);
+
+    if (responders.length === 0) {
+        container.innerHTML = '<div class="no-data">No responders currently active</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+
+    responders.forEach(r => {
+        const email = r.email || 'Unknown';
+
+        // Count assigned (non-SAFE) victims for this responder
+        const assignedVictims = Object.values(sosData).filter(
+            s => (s.assigned_to === email || s.assignedTo === email) && s.status !== 'SAFE'
+        );
+        // Count saved victims for this responder
+        const savedVictims = Object.values(sosData).filter(
+            s => (s.assigned_to === email || s.assignedTo === email) && s.status === 'SAFE'
+        );
+
+        const lastSeen = r.timestamp ? getTimeAgo(r.timestamp) : '—';
+        const lat = r.lat ? r.lat.toFixed(5) : '?';
+        const lng = r.lng ? r.lng.toFixed(5) : '?';
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px;';
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="color:#00d4ff; font-family:var(--mono); font-size:11px; font-weight:bold;">🛡️ ${email}</span>
+                <span style="background:rgba(0,255,136,0.15); color:#00ff88; padding:1px 6px; border-radius:3px; font-size:9px; font-family:var(--mono);">LIVE</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:6px;">
+                <div style="background:rgba(255,0,60,0.1); border:1px solid rgba(255,0,60,0.2); border-radius:4px; padding:6px; text-align:center;">
+                    <div style="font-size:16px; font-weight:bold; color:#ff003c;">${assignedVictims.length}</div>
+                    <div style="font-size:8px; color:#6a7090; text-transform:uppercase; letter-spacing:1px;">Assigned</div>
+                </div>
+                <div style="background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.2); border-radius:4px; padding:6px; text-align:center;">
+                    <div style="font-size:16px; font-weight:bold; color:#00ff88;">${savedVictims.length}</div>
+                    <div style="font-size:8px; color:#6a7090; text-transform:uppercase; letter-spacing:1px;">Saved</div>
+                </div>
+                <div style="background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.2); border-radius:4px; padding:6px; text-align:center;">
+                    <div style="font-size:16px; font-weight:bold; color:#00d4ff;">${assignedVictims.length + savedVictims.length}</div>
+                    <div style="font-size:8px; color:#6a7090; text-transform:uppercase; letter-spacing:1px;">Total</div>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:9px; color:#6a7090; font-family:var(--mono);">
+                <span>📍 [${lat}, ${lng}]</span>
+                <span>Last ping: ${lastSeen}</span>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
 
 // =============================================================================
 // HIDE STARTUP ON INITIAL LOAD (if not logged in)
@@ -584,3 +727,168 @@ window.addEventListener('load', () => {
 });
 
 console.log('🚨 EVAC Command Center v1.0 loaded.');
+
+// =============================================================================
+// SAFE SPOTS
+// =============================================================================
+
+let safeSpots = [];
+let spotMarkers = {};
+
+function initSafeSpots() {
+    firestoreListeners.push(
+        db.collection('safespots').onSnapshot((snapshot) => {
+            safeSpots = [];
+            snapshot.forEach(doc => {
+                safeSpots.push(doc.data());
+            });
+            renderSafeSpots();
+            renderSpotMarkers();
+        }, (err) => {
+            console.error('SafeSpot listener error:', err);
+        })
+    );
+}
+
+function addSafeSpot() {
+    const name = document.getElementById('spotName').value.trim();
+    const lat = parseFloat(document.getElementById('spotLat').value);
+    const lng = parseFloat(document.getElementById('spotLng').value);
+    const type = document.getElementById('spotType').value;
+
+    if (!name || isNaN(lat) || isNaN(lng)) {
+        alert('Please provide Name, Latitude, and Longitude. Click on the map to set coordinates automatically.');
+        return;
+    }
+
+    const spot = {
+        id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'spot_' + Date.now(),
+        name: name,
+        latitude: lat,
+        longitude: lng,
+        type: type,
+        is_active: true,
+        updated_at: Date.now(),
+        signature: null
+    };
+
+    db.collection('safespots').doc(spot.id).set(spot)
+        .then(() => {
+            addLog('📍', `SafeSpot added: <strong>${name}</strong>`);
+        })
+        .catch(err => {
+            alert('Failed to add SafeSpot: ' + err.message);
+        });
+
+    document.getElementById('spotName').value = '';
+    document.getElementById('spotLat').value = '';
+    document.getElementById('spotLng').value = '';
+}
+
+function removeSafeSpot(id) {
+    if(!confirm('Are you sure you want to delete this SafeSpot?')) return;
+    const spot = safeSpots.find(s => s.id === id);
+    
+    db.collection('safespots').doc(id).delete()
+        .then(() => {
+            if(spot) addLog('🗑️', `SafeSpot removed: <strong>${spot.name}</strong>`);
+        })
+        .catch(err => {
+            alert('Failed to delete SafeSpot: ' + err.message);
+        });
+}
+
+function renderSafeSpots() {
+    const container = document.getElementById('safespot-registry');
+    if (!container) return;
+
+    if (safeSpots.length === 0) {
+        container.innerHTML = '<div style="font-size:11px; color:#6a7090; text-align:center; padding-top: 10px;">No SafeSpots added. Click map to define.</div>';
+        return;
+    }
+
+    const sorted = [...safeSpots].sort((a,b) => b.updated_at - a.updated_at);
+
+    container.innerHTML = sorted.map(s => `
+        <div style="background:rgba(0,212,255,0.05); padding:10px; border-radius:6px; margin-bottom:8px; border: 1px solid rgba(0,212,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <strong style="font-size:12px; color:var(--primary);">${s.name}</strong>
+                <div style="font-size:9px; color:var(--text-dim); margin-top:2px;">
+                    ${s.type} · [${s.latitude.toFixed(4)}, ${s.longitude.toFixed(4)}]
+                </div>
+            </div>
+            <button onclick="removeSafeSpot('${s.id}')" style="background:none; border:none; padding:4px; font-size:14px; cursor:pointer;" title="Delete">🗑️</button>
+        </div>
+    `).join('');
+}
+
+function renderSpotMarkers() {
+    Object.values(spotMarkers).forEach(m => map.removeLayer(m));
+    spotMarkers = {};
+
+    safeSpots.forEach(s => {
+        const typeColors = {
+            'SHELTER': '#00d4ff', 'MEDICAL': '#ff003c',
+            'FOOD': '#00ff88', 'WATER': '#00d4ff', 'POLICE': '#ff9500'
+        };
+        const color = typeColors[s.type] || '#00d4ff';
+
+        const emojis = {
+            'SHELTER': '🏠', 'MEDICAL': '🏥',
+            'FOOD': '🍽️', 'WATER': '💧', 'POLICE': '🚔'
+        };
+        const emoji = emojis[s.type] || '📍';
+
+        const customIcon = L.divIcon({
+            html: `<div style="font-size:20px; text-shadow:0 0 5px #000; padding:2px; background: ${color}40; border-radius:50%; border:1px solid ${color}; display:flex; align-items:center; justify-content:center; width:30px; height:30px;">${emoji}</div>`,
+            className: 'safespot-custom-icon',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+
+        const marker = L.marker([s.latitude, s.longitude], { icon: customIcon }).addTo(map);
+
+        marker.bindPopup(`
+            <div style="font-family: var(--sans);">
+                <strong style="color: ${color}; font-size:14px;">${s.name}</strong><br>
+                <div style="font-size:11px; margin-top:4px;">Type: ${s.type}</div>
+                <div style="font-size:10px; color:#aaa;">${s.latitude.toFixed(4)}, ${s.longitude.toFixed(4)}</div>
+            </div>
+        `);
+        spotMarkers[s.id] = marker;
+    });
+}
+
+function exportSafeSpotsJson() {
+    if (safeSpots.length === 0) { alert('No safe spots to export.'); return; }
+    const json = JSON.stringify(safeSpots, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'safespots.json'; a.click();
+    URL.revokeObjectURL(url);
+    addLog('📦', `Exported ${safeSpots.length} SafeSpots to JSON.`);
+}
+
+function importSafeSpotsJson(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!Array.isArray(data)) throw new Error("Expected JSON array");
+            let inserted = 0;
+            data.forEach(item => {
+                if (item.id && item.name && item.latitude != null && item.longitude != null) {
+                    db.collection('safespots').doc(item.id).set(item);
+                    inserted++;
+                }
+            });
+            addLog('📂', `Imported ${inserted} SafeSpots from JSON.`);
+        } catch (err) {
+            alert('Import failed: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+}
