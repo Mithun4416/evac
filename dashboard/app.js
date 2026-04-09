@@ -22,8 +22,10 @@ const auth = firebase.auth();
 let map = null;
 const markers = {};
 const sosData = {};
+const respondersData = {};
 let bulletinCount = 0;
 let ackCount = 0;
+const acksData = {};
 const activityEntries = [];
 let firestoreListeners = [];
 let heatLayer = null;
@@ -117,6 +119,8 @@ function showCommandCenter(user) {
             startFooterDate();
             attachFirestoreListeners();
             addLog('🟢', 'System online. Operator authenticated.');
+            // Refresh relative times every 15 seconds
+            setInterval(refreshUi, 15000);
         }, 100);
     }, 2500);
 }
@@ -249,13 +253,36 @@ function attachFirestoreListeners() {
         refreshUi();
     });
 
-    // ACKs listener (count only)
+    // ACKs listener
     const unsubAcks = db.collection('acks').onSnapshot((snapshot) => {
         ackCount = snapshot.size;
+        snapshot.docChanges().forEach((change) => {
+            const data = change.doc.data();
+            const id = change.doc.id;
+            if (change.type === 'removed') {
+                delete acksData[id];
+            } else {
+                acksData[id] = data;
+            }
+        });
         refreshUi();
     });
 
-    firestoreListeners.push(unsubSos, unsubBulletins, unsubAcks);
+    // Responders listener
+    const unsubResponders = db.collection('responders').onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            const data = change.doc.data();
+            const id = change.doc.id;
+            if (change.type === 'removed') {
+                delete respondersData[id];
+            } else {
+                respondersData[id] = data;
+            }
+        });
+        refreshRespondersUi();
+    });
+
+    firestoreListeners.push(unsubSos, unsubBulletins, unsubAcks, unsubResponders);
 }
 
 function updateLastSync() {
@@ -271,60 +298,99 @@ function updateLastSync() {
 function refreshUi() {
     const list = document.getElementById('sos-list');
     
-    // Deduplicate by deviceId, keeping the latest document
-    const deviceMap = {};
-    Object.entries(sosData).forEach(([docId, data]) => {
-        const dId = data.device_id || data.deviceId || docId;
+    // Build ALL entries list with parsed timestamps
+    const allSos = Object.entries(sosData).map(([docId, data]) => {
         const ts = parseTs(data.timestamp) || 0;
-        if (!deviceMap[dId] || ts > deviceMap[dId]._ts) {
-            deviceMap[dId] = { id: docId, ...data, _ts: ts, deviceId: dId };
-        }
+        const dId = data.device_id || data.deviceId || docId;
+        return { id: docId, ...data, _ts: ts, deviceId: dId };
     });
 
-    const uniqueSos = Object.values(deviceMap);
+    // Deduplicate by deviceId for STATS and MAP MARKERS only
+    const deviceMap = {};
+    allSos.forEach(entry => {
+        if (!deviceMap[entry.deviceId] || entry._ts > deviceMap[entry.deviceId]._ts) {
+            deviceMap[entry.deviceId] = entry;
+        }
+    });
+    const uniqueDevices = Object.values(deviceMap);
     
-    // Stats: Mesh Nodes Online = active devices reporting (min 1 for gateway itself)
-    const active = uniqueSos.length;
-    const critical = uniqueSos.filter(s => s.status === 'MEDICAL' || s.status === 'TRAPPED').length;
-    const people = uniqueSos.reduce((sum, s) => sum + (s.people_count || s.peopleCount || 1), 0);
+    // Stats — accurate calculations from ALL data
+    const totalSos = allSos.length;                                                  // total SOS entries
+    const critical = allSos.filter(s => s.status === 'MEDICAL' || s.status === 'TRAPPED').length;  // all critical
+    const people = allSos.reduce((sum, s) => sum + (s.people_count || s.peopleCount || 1), 0);     // all people
+    const meshNodes = uniqueDevices.length;                                          // unique devices = actual mesh nodes
     
-    animateNumber('stat-active', active);
+    animateNumber('stat-active', totalSos);
     animateNumber('stat-critical', critical);
     animateNumber('stat-people', people);
     animateNumber('stat-bulletins', bulletinCount);
-    animateNumber('stat-nodes', Math.max(1, active)); 
+    animateNumber('stat-nodes', Math.max(1, meshNodes));
 
-    // Map Markers: remove stale, update active
-    const currentDeviceIds = new Set(uniqueSos.map(s => s.deviceId));
+    // Avg Response Time — compute from ACK timestamps vs SOS timestamps
+    const responseEl = document.getElementById('stat-response');
+    if (responseEl) {
+        const ackEntries = Object.values(acksData);
+        if (ackEntries.length > 0 && allSos.length > 0) {
+            let totalMs = 0;
+            let matchCount = 0;
+            ackEntries.forEach(ack => {
+                const ackTs = parseTs(ack.timestamp);
+                const targetId = ack.target_device_id || ack.targetDeviceId;
+                // Find the earliest SOS from this target device
+                const matchingSos = allSos
+                    .filter(s => s.deviceId === targetId)
+                    .sort((a, b) => a._ts - b._ts);
+                if (matchingSos.length > 0 && ackTs > matchingSos[0]._ts) {
+                    totalMs += ackTs - matchingSos[0]._ts;
+                    matchCount++;
+                }
+            });
+            if (matchCount > 0) {
+                const avgMs = totalMs / matchCount;
+                const avgMins = Math.round(avgMs / 60000);
+                if (avgMins < 1) responseEl.textContent = '<1 min';
+                else if (avgMins < 60) responseEl.textContent = avgMins + ' min';
+                else responseEl.textContent = Math.round(avgMins / 60) + 'h ' + (avgMins % 60) + 'm';
+            } else {
+                responseEl.textContent = '— min';
+            }
+        } else {
+            responseEl.textContent = ackEntries.length === 0 ? 'No ACKs' : '— min';
+        }
+    }
+
+    // Map Markers: remove stale, update active (use deduped list)
+    const currentDeviceIds = new Set(uniqueDevices.map(s => s.deviceId));
     Object.keys(markers).forEach(dId => {
         if (!currentDeviceIds.has(dId)) {
             removeMarker(dId);
         }
     });
-    uniqueSos.forEach(sos => {
+    uniqueDevices.forEach(sos => {
         updateMarker(sos.deviceId, sos);
     });
 
-    // SOS Feed display
-    uniqueSos.sort((a, b) => b._ts - a._ts);
-    if (uniqueSos.length === 0) {
+    // SOS Feed display — show ALL entries sorted by timestamp, newest first
+    allSos.sort((a, b) => b._ts - a._ts);
+    if (allSos.length === 0) {
         if (list) list.innerHTML = '<div class="no-data">No active SOS signals</div>';
     } else {
         if (list) list.innerHTML = '';
-        uniqueSos.forEach(sos => {
+        allSos.forEach(sos => {
             try {
                 const div = document.createElement('div');
                 div.className = `sos-card status-${(sos.status || 'UNKNOWN').toUpperCase()}`;
                 div.onclick = () => {
                     if (sos.lat && sos.lng && map) {
-                        map.setView([sos.lat, sos.lng], 15);
+                        map.flyTo([sos.lat, sos.lng], 17, { animate: true, duration: 1.5 });
                         if (markers[sos.deviceId]) markers[sos.deviceId].openPopup();
                     }
                 };
                 
-                // Fixed accurate time sync relative to message origination
+                // Show both original time and relative time
                 const msgTime = new Date(sos._ts);
-                const timeStr = isNaN(msgTime.getTime()) ? '—' : msgTime.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                const absTime = isNaN(msgTime.getTime()) ? '\u2014' : msgTime.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                const relTime = getTimeAgo(sos._ts);
                 
                 const latStr = (sos.lat != null && sos.lng != null)
                     ? `[${Number(sos.lat).toFixed(6)}, ${Number(sos.lng).toFixed(6)}]`
@@ -333,10 +399,14 @@ function refreshUi() {
                 div.innerHTML = `
                     <div class="sos-card-header">
                         <span class="sos-status-badge">${(sos.status || 'UNKNOWN').toUpperCase()}</span>
-                        <span class="sos-time" style="font-family: var(--mono); color: #fff;">${timeStr}</span>
+                        <span class="sos-time" style="font-family: var(--mono); text-align:right; line-height:1.4;">
+                            <span style="font-size:11px; color:#fff;">${absTime}</span><br>
+                            <span style="font-size:9px; color:#6a7090;">${relTime}</span>
+                        </span>
                     </div>
-                    <div style="font-size: 10px; color: #00d4ff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all;">
-                        ID: ${sos.deviceId.substring(0, 16)}
+                    <div style="font-size: 10px; color: #00d4ff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all; display:flex; align-items:flex-start; gap:6px;">
+                        <span style="flex:1;">ID: ${sos.deviceId}</span>
+                        <button class="copy-btn" title="Copy Device ID" onclick="navigator.clipboard.writeText('${sos.deviceId}').then(() => { this.style.color='#00ff88'; setTimeout(()=>this.style.color='', 1000); }); event.stopPropagation();" style="background:transparent; border:none; color:var(--text-dim); cursor:pointer; font-size:12px; padding:2px;">📋</button>
                     </div>
                     <div class="sos-meta">
                         <span>👥 ${sos.people_count || sos.peopleCount || 1}</span>
@@ -555,19 +625,96 @@ function parseTs(ts) {
     if (!ts) return 0;
     if (typeof ts === 'string') return new Date(ts).getTime();
     if (typeof ts === 'object' && ts.seconds) return ts.seconds * 1000; // Firestore Timestamp
+
+    // Fix for old data stored with IST timezone bug (off by +5:30 = 19800000ms).
+    // Old Android code stored local-time epoch instead of UTC epoch.
+    // If timestamp is more than 5h30m behind current time, check if adding offset fixes it.
+    const IST_OFFSET_MS = 19800000; // 5 hours 30 minutes
+    const corrected = ts + IST_OFFSET_MS;
+    // Use corrected if it's in the past but closer to now (old bug data)
+    // If corrected would be in the future, use original (already fixed data)
+    if (corrected <= Date.now()) {
+        return corrected;
+    }
     return ts;
 }
 
 function getTimeAgo(timestamp) {
     if (!timestamp) return '—';
     const diff = Date.now() - timestamp;
-    const mins = Math.floor(diff / 60000);
+    if (diff < 0) return 'Just now';
+    const secs = Math.floor(diff / 1000);
+    const mins = Math.floor(secs / 60);
     const hrs = Math.floor(mins / 60);
     const days = Math.floor(hrs / 24);
     if (days > 0) return `${days}d ago`;
-    if (hrs > 0) return `${hrs}h ago`;
+    if (hrs > 0) return `${hrs}h ${mins % 60}m ago`;
     if (mins > 0) return `${mins}m ago`;
+    if (secs >= 10) return `${secs}s ago`;
     return 'Just now';
+}
+
+// =============================================================================
+// RESPONDERS UI
+// =============================================================================
+
+function refreshRespondersUi() {
+    const container = document.getElementById('responder-list');
+    if (!container) return;
+
+    const responders = Object.values(respondersData);
+
+    if (responders.length === 0) {
+        container.innerHTML = '<div class="no-data">No responders currently active</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+
+    responders.forEach(r => {
+        const email = r.email || 'Unknown';
+
+        // Count assigned (non-SAFE) victims for this responder
+        const assignedVictims = Object.values(sosData).filter(
+            s => (s.assigned_to === email || s.assignedTo === email) && s.status !== 'SAFE'
+        );
+        // Count saved victims for this responder
+        const savedVictims = Object.values(sosData).filter(
+            s => (s.assigned_to === email || s.assignedTo === email) && s.status === 'SAFE'
+        );
+
+        const lastSeen = r.timestamp ? getTimeAgo(r.timestamp) : '—';
+        const lat = r.lat ? r.lat.toFixed(5) : '?';
+        const lng = r.lng ? r.lng.toFixed(5) : '?';
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px;';
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="color:#00d4ff; font-family:var(--mono); font-size:11px; font-weight:bold;">🛡️ ${email}</span>
+                <span style="background:rgba(0,255,136,0.15); color:#00ff88; padding:1px 6px; border-radius:3px; font-size:9px; font-family:var(--mono);">LIVE</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:6px;">
+                <div style="background:rgba(255,0,60,0.1); border:1px solid rgba(255,0,60,0.2); border-radius:4px; padding:6px; text-align:center;">
+                    <div style="font-size:16px; font-weight:bold; color:#ff003c;">${assignedVictims.length}</div>
+                    <div style="font-size:8px; color:#6a7090; text-transform:uppercase; letter-spacing:1px;">Assigned</div>
+                </div>
+                <div style="background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.2); border-radius:4px; padding:6px; text-align:center;">
+                    <div style="font-size:16px; font-weight:bold; color:#00ff88;">${savedVictims.length}</div>
+                    <div style="font-size:8px; color:#6a7090; text-transform:uppercase; letter-spacing:1px;">Saved</div>
+                </div>
+                <div style="background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.2); border-radius:4px; padding:6px; text-align:center;">
+                    <div style="font-size:16px; font-weight:bold; color:#00d4ff;">${assignedVictims.length + savedVictims.length}</div>
+                    <div style="font-size:8px; color:#6a7090; text-transform:uppercase; letter-spacing:1px;">Total</div>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:9px; color:#6a7090; font-family:var(--mono);">
+                <span>📍 [${lat}, ${lng}]</span>
+                <span>Last ping: ${lastSeen}</span>
+            </div>
+        `;
+        container.appendChild(card);
+    });
 }
 
 // =============================================================================

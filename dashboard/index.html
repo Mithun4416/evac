@@ -65,9 +65,9 @@
         <!-- LEFT COLUMN: Stats -->
         <div id="left-col">
             <div class="stat-card stat-sos">
-                <div class="stat-label">Active SOS Signals</div>
+                <div class="stat-label">Total SOS Signals</div>
                 <div class="stat-number" id="stat-active">0</div>
-                <div class="stat-sub">Total incoming distress signals</div>
+                <div class="stat-sub">All distress signals received</div>
             </div>
             <div class="stat-card stat-critical">
                 <div class="stat-label">Critical Cases</div>
@@ -81,8 +81,8 @@
             </div>
             <div class="stat-card stat-nodes">
                 <div class="stat-label">Mesh Nodes Online</div>
-                <div class="stat-number" id="stat-nodes">1</div>
-                <div class="stat-sub">Active relay devices</div>
+                <div class="stat-number" id="stat-nodes">0</div>
+                <div class="stat-sub">Unique devices reporting</div>
             </div>
             <div class="stat-card stat-bulletins">
                 <div class="stat-label">Bulletins Sent</div>
@@ -120,18 +120,29 @@
             </div>
         </div>
 
-        <!-- CENTER COLUMN: Map + Activity Log -->
+        <!-- CENTER COLUMN: Map + Activity Log + Responders -->
         <div id="center-col">
             <div id="map-container">
                 <div id="map"></div>
             </div>
-            <div id="activity-panel">
-                <div class="panel-header">
-                    <span class="icon">📋</span>
-                    <h2>Activity Log</h2>
+            <div id="bottom-row">
+                <div id="activity-panel">
+                    <div class="panel-header">
+                        <span class="icon">📋</span>
+                        <h2>Activity Log</h2>
+                    </div>
+                    <div id="activity-log">
+                        <div class="no-data">Waiting for events...</div>
+                    </div>
                 </div>
-                <div id="activity-log">
-                    <div class="no-data">Waiting for events...</div>
+                <div id="responder-panel">
+                    <div class="panel-header">
+                        <span class="icon">🛡️</span>
+                        <h2>Responders</h2>
+                    </div>
+                    <div id="responder-list">
+                        <div class="no-data">No responders currently active</div>
+                    </div>
                 </div>
             </div>
         </div>

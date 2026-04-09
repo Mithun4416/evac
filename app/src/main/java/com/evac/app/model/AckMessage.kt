@@ -41,7 +41,11 @@ data class AckMessage(
     fun toEntity(): MessageEntity = MessageEntity(
         id = id,
         type = type,
-        timestamp = try { java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).parse(timestamp)?.time ?: System.currentTimeMillis() } catch (_: Exception) { System.currentTimeMillis() },
+        timestamp = try {
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
+            sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            sdf.parse(timestamp)?.time ?: System.currentTimeMillis()
+        } catch (_: Exception) { System.currentTimeMillis() },
         hopCount = hopCount,
         maxHops = maxHops,
         ttlHours = ttlHours,
@@ -69,7 +73,11 @@ data class AckMessage(
             id = entity.id,
             targetDeviceId = entity.targetDeviceId ?: "",
             body = entity.body ?: "",
-            timestamp = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).format(java.util.Date(entity.timestamp)),
+            timestamp = run {
+                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
+                sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                sdf.format(java.util.Date(entity.timestamp))
+            },
             ttlHours = entity.ttlHours,
             hopCount = entity.hopCount,
             maxHops = entity.maxHops,
