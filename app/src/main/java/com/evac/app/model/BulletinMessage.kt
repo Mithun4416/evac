@@ -42,7 +42,7 @@ data class BulletinMessage(
     }
 
     fun computeHash(): String {
-        val raw = "$id$type$alertType$body$timestamp$ttlHours$hopCount$maxHops$zoneLat$zoneLng$zoneRadiusKm"
+        val raw = "$id$type$alertType$body$timestamp$ttlHours$maxHops$zoneLat$zoneLng$zoneRadiusKm"
         return HashUtil.sha256(raw)
     }
 

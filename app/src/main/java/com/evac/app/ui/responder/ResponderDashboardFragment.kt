@@ -26,6 +26,7 @@ import com.evac.app.util.OsrmRouter
 import com.google.android.gms.location.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.launch
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -70,6 +71,10 @@ class ResponderDashboardFragment : Fragment() {
         setupRecyclerView(view)
         setupLocationTracking()
         observeData()
+
+        // Push instant presence upon login, so the command center tracking works 
+        // even if GPS struggles to get a lock indoors.
+        syncPresenceToFirebase()
     }
 
     private fun setupMap(view: View) {
@@ -143,12 +148,27 @@ class ResponderDashboardFragment : Fragment() {
             "timestamp" to System.currentTimeMillis()
         )
         db.collection("responders").document(email)
-            .set(data)
+            .set(data, SetOptions.merge())
             .addOnSuccessListener {
                 tvSyncStatus.text = "📍 Auto-sync active"
             }
             .addOnFailureListener {
                 tvSyncStatus.text = "⚠️ Sync failed"
+            }
+    }
+
+    private fun syncPresenceToFirebase() {
+        val email = auth.currentUser?.email ?: return
+        val data = mapOf(
+            "email" to email,
+            "timestamp" to System.currentTimeMillis()
+        )
+        db.collection("responders").document(email)
+            .set(data, SetOptions.merge())
+            .addOnSuccessListener {
+                if (tvSyncStatus.text.toString() != "📍 Auto-sync active") {
+                    tvSyncStatus.text = "🛡️ Presence Active"
+                }
             }
     }
 

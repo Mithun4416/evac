@@ -48,7 +48,7 @@ data class SosMessage(
     }
 
     fun computeHash(): String {
-        val raw = "$id$type$status$deviceId$timestamp$ttlHours$hopCount$maxHops" +
+        val raw = "$id$type$status$deviceId$timestamp$ttlHours$maxHops" +
                 "$lat$lng$accuracyM$peopleCount$batteryPct$note$phraseKey$isVolumeSos"
         return HashUtil.sha256(raw)
     }

@@ -34,7 +34,7 @@ data class AckMessage(
     }
 
     fun computeHash(): String {
-        val raw = "$id$type$targetDeviceId$body$timestamp$ttlHours$hopCount$maxHops"
+        val raw = "$id$type$targetDeviceId$body$timestamp$ttlHours$maxHops"
         return HashUtil.sha256(raw)
     }
 

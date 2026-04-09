@@ -136,11 +136,16 @@ class GatewayManager(private val context: Context) {
                 val entity = mapToEntity(doc.id, doc.data)
 
                 scope.launch {
-                    val existing = dao.getById(entity.id)
-                    if (existing == null) {
-                        dao.insert(entity)
-                        Log.i(TAG, "Downloaded from cloud: ${entity.type} ${entity.id}")
+                    if (entity.type == "ACK" || entity.type == "BULLETIN") {
+                        // Skip legacy db insert — Reverse Mesh handles routing!
                         onNewMessageFromCloud?.invoke(entity)
+                    } else {
+                        val existing = dao.getById(entity.id)
+                        if (existing == null) {
+                            dao.insert(entity)
+                            Log.i(TAG, "Downloaded from cloud: ${entity.type} ${entity.id}")
+                            onNewMessageFromCloud?.invoke(entity)
+                        }
                     }
                 }
             }
@@ -183,17 +188,17 @@ class GatewayManager(private val context: Context) {
         id = id,
         type = (data["type"] as? String) ?: "SOS",
         timestamp = (data["timestamp"] as? Long) ?: System.currentTimeMillis(),
-        hopCount = ((data["hop_count"] as? Long) ?: (data["hopCount"] as? Long))?.toInt() ?: 0,
-        maxHops = ((data["max_hops"] as? Long) ?: (data["maxHops"] as? Long))?.toInt() ?: 10,
-        ttlHours = ((data["ttl_hours"] as? Long) ?: (data["ttlHours"] as? Long))?.toInt() ?: 24,
+        hopCount = ((data["hop_count"] as? Number) ?: (data["hopCount"] as? Number))?.toInt() ?: 0,
+        maxHops = ((data["max_hops"] as? Number) ?: (data["maxHops"] as? Number))?.toInt() ?: 10,
+        ttlHours = ((data["ttl_hours"] as? Number) ?: (data["ttlHours"] as? Number))?.toInt() ?: 24,
         hash = (data["hash"] as? String) ?: "",
         status = data["status"] as? String,
         deviceId = (data["device_id"] as? String) ?: (data["deviceId"] as? String),
         lat = data["lat"] as? Double,
         lng = data["lng"] as? Double,
         accuracyM = (data["accuracy_m"] as? Double)?.toFloat(),
-        peopleCount = ((data["people_count"] as? Long) ?: (data["peopleCount"] as? Long))?.toInt(),
-        batteryPct = ((data["battery_pct"] as? Long) ?: (data["batteryPct"] as? Long))?.toInt(),
+        peopleCount = ((data["people_count"] as? Number) ?: (data["peopleCount"] as? Number))?.toInt(),
+        batteryPct = ((data["battery_pct"] as? Number) ?: (data["batteryPct"] as? Number))?.toInt(),
         note = data["note"] as? String,
         phraseKey = data["phrase_key"] as? String,
         isVolumeSos = (data["is_volume_sos"] as? Boolean) ?: (data["isVolumeSos"] as? Boolean) ?: false,

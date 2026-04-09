@@ -265,7 +265,21 @@ function attachFirestoreListeners() {
         refreshUi();
     });
 
-    firestoreListeners.push(unsubSos, unsubBulletins, unsubAcks);
+    // Responders listener
+    const unsubResponders = db.collection('responders').onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            const data = change.doc.data();
+            const id = change.doc.id;
+            if (change.type === 'removed') {
+                delete respondersData[id];
+            } else {
+                respondersData[id] = data;
+            }
+        });
+        refreshRespondersUi();
+    });
+
+    firestoreListeners.push(unsubSos, unsubBulletins, unsubAcks, unsubResponders);
 }
 
 function updateLastSync() {
@@ -322,12 +336,14 @@ function refreshUi() {
     
     const feedItems = [];
 
-    // 1. Add Active SOS Signals as Rich Cards
-    uniqueSos.forEach(sos => {
+    // 1. Add ALL Historical SOS Signals as Rich Cards (unlike uniqueSos used for Maps)
+    Object.values(sosData).forEach(sos => {
+        const parsedTs = parseTs(sos.timestamp) || 0;
+        const mappedSOS = { ...sos, _ts: parsedTs, deviceId: sos.device_id || sos.deviceId || 'Unknown' };
         feedItems.push({
             type: 'SOS_CARD',
-            ts: sos._ts,
-            data: sos
+            ts: parsedTs,
+            data: mappedSOS
         });
     });
 

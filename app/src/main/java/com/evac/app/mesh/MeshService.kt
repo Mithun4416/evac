@@ -231,11 +231,13 @@ class MeshService : Service() {
         gatewayManager = GatewayManager(applicationContext)
         gatewayManager.onNewMessageFromCloud = { entity ->
             serviceScope.launch {
-                // Legacy relay (into old SOS pipeline)
-                val relayBytes = syncEngine.prepareForRelay(entity)
-                if (relayBytes != null) {
-                    nearbyManager.broadcastPayload(relayBytes)
-                    Log.d(TAG, "Relayed cloud message ${entity.id} into legacy mesh")
+                if (entity.type == "SOS") {
+                    // Legacy relay (only for SOS pipeline)
+                    val relayBytes = syncEngine.prepareForRelay(entity)
+                    if (relayBytes != null) {
+                        nearbyManager.broadcastPayload(relayBytes)
+                        Log.d(TAG, "Relayed cloud message ${entity.id} into legacy mesh")
+                    }
                 }
 
                 // ═════════════════════════════════════════════════════════
