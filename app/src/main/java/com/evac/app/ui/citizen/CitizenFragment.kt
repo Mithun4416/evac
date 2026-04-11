@@ -175,7 +175,7 @@ class CitizenFragment : Fragment() {
 
     private fun sendSos(status: String, etNote: TextInputEditText, tvStatus: TextView) {
         grabLocation() // Refresh location
-        if (!viewModel.canSendSos()) {
+        if (!viewModel.canSendSos(status)) {
             Toast.makeText(
                 requireContext(),
                 getString(R.string.sos_rate_limit),

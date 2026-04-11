@@ -12,7 +12,8 @@ import com.google.android.material.card.MaterialCardView
 
 class SosTaskAdapter(
     private val onNavigateClick: (SosTask) -> Unit,
-    private val onResolveClick: (SosTask) -> Unit
+    private val onResolveClick: (SosTask) -> Unit,
+    private val onUnresolveClick: (SosTask) -> Unit
 ) : RecyclerView.Adapter<SosTaskAdapter.TaskViewHolder>() {
 
     private val items = mutableListOf<SosTask>()
@@ -78,9 +79,9 @@ class SosTaskAdapter(
                 cardContainer.strokeWidth = 1
             }
 
-            val distKm = "%.1f".format(task.distanceMeters / 1000f)
+            val distKm = if (task.distanceMeters >= 0f) "%.1f km".format(task.distanceMeters / 1000f) else "Locating..."
             val etaStr = if (task.etaMinutes > 0) " · ${task.etaMinutes}m ETA" else ""
-            tvDistanceEta.text = "$distKm km$etaStr"
+            tvDistanceEta.text = "$distKm$etaStr"
 
             val details = StringBuilder("👥 ${task.peopleCount}")
             if (task.batteryPct != null) details.append("  |  🔋 ${task.batteryPct}%")
@@ -88,7 +89,16 @@ class SosTaskAdapter(
             tvDetails.text = details.toString()
 
             btnNavigate.setOnClickListener { onNavigateClick(task) }
-            btnResolved.setOnClickListener { onResolveClick(task) }
+
+            if (task.status == "SAFE") {
+                btnResolved.text = "UNRESOLVE"
+                btnResolved.setTextColor(Color.parseColor("#FF9500"))
+                btnResolved.setOnClickListener { onUnresolveClick(task) }
+            } else {
+                btnResolved.text = "RESOLVE"
+                btnResolved.setTextColor(Color.parseColor("#00FF88"))
+                btnResolved.setOnClickListener { onResolveClick(task) }
+            }
         }
     }
 }

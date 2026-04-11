@@ -89,7 +89,8 @@ class ResponderDashboardFragment : Fragment() {
         rvTasks.layoutManager = LinearLayoutManager(requireContext())
         adapter = SosTaskAdapter(
             onNavigateClick = { task -> navigateToTask(task) },
-            onResolveClick = { task -> resolveTask(task) }
+            onResolveClick = { task -> resolveTask(task) },
+            onUnresolveClick = { task -> unresolveTask(task) }
         )
         rvTasks.adapter = adapter
     }
@@ -262,6 +263,11 @@ class ResponderDashboardFragment : Fragment() {
             activeRouteOverlay = null
             mapView.invalidate()
         }
+    }
+
+    private fun unresolveTask(task: SosTask) {
+        viewModel.markUnresolved(task.id)
+        Toast.makeText(context, "Marked as Unresolved (Medical)", Toast.LENGTH_SHORT).show()
     }
 
     private fun hasLocationPermission(): Boolean {

@@ -52,6 +52,9 @@ interface MessageDao {
     @Query("UPDATE messages SET synced_to_firebase = 1 WHERE id = :id")
     suspend fun markSynced(id: String)
 
+    @Query("UPDATE messages SET status = :status WHERE id = :id")
+    suspend fun updateStatus(id: String, status: String)
+
     @Query("DELETE FROM messages WHERE timestamp < :cutoffMs")
     suspend fun deleteExpired(cutoffMs: Long)
 

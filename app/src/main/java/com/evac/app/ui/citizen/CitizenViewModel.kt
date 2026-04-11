@@ -38,7 +38,8 @@ class CitizenViewModel(application: Application) : AndroidViewModel(application)
     private var meshService: MeshService? = null
     private var lastSosTime = 0L
 
-    fun canSendSos(): Boolean {
+    fun canSendSos(status: String = ""): Boolean {
+        if (status == "SAFE") return true
         return System.currentTimeMillis() - lastSosTime >= RATE_LIMIT_MS
     }
 
@@ -82,9 +83,9 @@ class CitizenViewModel(application: Application) : AndroidViewModel(application)
         isVolumeSos: Boolean = false,
         location: Location? = null
     ) {
-        // Rate limit: 1 SOS per 1 minute
+        // Rate limit: 1 SOS per 1 minute (except SAFE — no limit)
         val now = System.currentTimeMillis()
-        if (now - lastSosTime < RATE_LIMIT_MS) {
+        if (status != "SAFE" && now - lastSosTime < RATE_LIMIT_MS) {
             val remainSec = (RATE_LIMIT_MS - (now - lastSosTime)) / 1000
             _statusMsg.value = "Rate limited. Wait ${remainSec}s"
             Log.w(TAG, "SOS rate limited — ${remainSec}s remaining")

@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 
 class ResponderDashboardViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -40,9 +41,7 @@ class ResponderDashboardViewModel(application: Application) : AndroidViewModel(a
                 Location.distanceBetween(loc.latitude, loc.longitude, msg.lat, msg.lng, results)
                 dist = results[0]
 
-                // Optional: strictly 5km radius filter only if location is verified
-                if (dist > 5000f) continue
-                
+                // Removed strict 5km radius filter so all alerts show up, sorted by distance.
                 if (msg.assignedTo == null && dist < minDistance) {
                     minDistance = dist
                     closestUnassignedId = msg.id
@@ -96,6 +95,11 @@ class ResponderDashboardViewModel(application: Application) : AndroidViewModel(a
     }
 
     fun markResolved(taskId: String) {
+        // Optimistically update local DB so the UI dynamically reacts instantly
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.updateStatus(taskId, "SAFE")
+        }
+        
         // Update the SOS status to SAFE to notify the Command Center that the victim is rescued
         db.collection("sos_messages").document(taskId)
             .update("status", "SAFE")
@@ -104,6 +108,23 @@ class ResponderDashboardViewModel(application: Application) : AndroidViewModel(a
             }
             .addOnFailureListener { e ->
                 Log.e("ResponderViewModel", "Failed to mark SAFE", e)
+            }
+    }
+
+    fun markUnresolved(taskId: String) {
+        // Optimistically update local DB so the UI dynamically reacts instantly
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.updateStatus(taskId, "MEDICAL")
+        }
+
+        // Revert the SOS status back to MEDICAL if it was incorrectly marked SAFE
+        db.collection("sos_messages").document(taskId)
+            .update("status", "MEDICAL")
+            .addOnSuccessListener {
+                Log.i("ResponderViewModel", "Task $taskId marked back to MEDICAL")
+            }
+            .addOnFailureListener { e ->
+                Log.e("ResponderViewModel", "Failed to mark UNRESOLVED", e)
             }
     }
 }

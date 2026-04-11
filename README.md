@@ -4,8 +4,6 @@
 
 ![EVAC Banner](https://img.shields.io/badge/EVAC-When%20Everything%20Fails%2C%20Evac%20Doesn't-red?style=for-the-badge)
 
-**🏆 Winner - Mega Hackathon 2024, BMS College of Engineering**
-
 [![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-0095D5?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
