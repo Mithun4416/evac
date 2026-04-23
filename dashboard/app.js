@@ -395,7 +395,7 @@ function refreshUi() {
                                 <span style="font-size:9px; color:#6a7090;">${relTime}</span>
                             </span>
                         </div>
-                        <div style="font-size: 10px; color: #00d4ff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all; display:flex; align-items:flex-start; gap:6px;">
+                        <div style="font-size: 10px; color: #ffffff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all; display:flex; align-items:flex-start; gap:6px;">
                             <span style="flex:1;">ID: ${sos.deviceId}</span>
                             <button class="copy-btn" title="Copy Device ID" onclick="navigator.clipboard.writeText('${sos.deviceId}').then(() => { this.style.color='#00ff88'; setTimeout(()=>this.style.color='', 1000); }); event.stopPropagation();" style="background:transparent; border:none; color:var(--text-dim); cursor:pointer; font-size:12px; padding:2px;">📋</button>
                         </div>
@@ -702,7 +702,7 @@ function refreshRespondersUi() {
         card.style.cssText = 'background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px;';
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span style="color:#00d4ff; font-family:var(--mono); font-size:11px; font-weight:bold;">🛡️ ${email}</span>
+                <span style="color:#ffffff; font-family:var(--mono); font-size:11px; font-weight:bold;">🛡️ ${email}</span>
                 <span style="background:rgba(0,255,136,0.15); color:#00ff88; padding:1px 6px; border-radius:3px; font-size:9px; font-family:var(--mono);">LIVE</span>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:6px;">
@@ -715,7 +715,7 @@ function refreshRespondersUi() {
                     <div style="font-size:8px; color:#6a7090; text-transform:uppercase; letter-spacing:1px;">Saved</div>
                 </div>
                 <div style="background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.2); border-radius:4px; padding:6px; text-align:center;">
-                    <div style="font-size:16px; font-weight:bold; color:#00d4ff;">${assignedVictims.length + savedVictims.length}</div>
+                    <div style="font-size:16px; font-weight:bold; color:#ffffff;">${assignedVictims.length + savedVictims.length}</div>
                     <div style="font-size:8px; color:#6a7090; text-transform:uppercase; letter-spacing:1px;">Total</div>
                 </div>
             </div>
@@ -844,10 +844,10 @@ function renderSpotMarkers() {
 
     safeSpots.forEach(s => {
         const typeColors = {
-            'SHELTER': '#00d4ff', 'MEDICAL': '#ff003c',
-            'FOOD': '#00ff88', 'WATER': '#00d4ff', 'POLICE': '#ff9500'
+            'SHELTER': '#ffffff', 'MEDICAL': '#ff003c',
+            'FOOD': '#00ff88', 'WATER': '#ffffff', 'POLICE': '#ff9500'
         };
-        const color = typeColors[s.type] || '#00d4ff';
+        const color = typeColors[s.type] || '#ffffff';
 
         const emojis = {
             'SHELTER': '🏠', 'MEDICAL': '🏥',

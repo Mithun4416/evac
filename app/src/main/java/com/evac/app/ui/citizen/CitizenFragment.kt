@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.NumberPicker
 import android.widget.TextView
 import android.widget.Toast
@@ -80,20 +81,22 @@ class CitizenFragment : Fragment() {
         }
 
         val tvStatus = view.findViewById<TextView>(R.id.tv_status)
-        val tvPeopleCount = view.findViewById<TextView>(R.id.tv_people_count)
-        val etNote = view.findViewById<TextInputEditText>(R.id.et_note)
+        val tvPeopleCount = view.findViewById<EditText>(R.id.tv_people_count)
+        val etNote = view.findViewById<EditText>(R.id.et_note)
 
         // People count controls
         view.findViewById<MaterialButton>(R.id.btn_people_minus).setOnClickListener {
-            if (peopleCount > 1) {
-                peopleCount--
-                tvPeopleCount.text = peopleCount.toString()
+            val current = tvPeopleCount.text.toString().toIntOrNull() ?: 1
+            if (current > 1) {
+                peopleCount = current - 1
+                tvPeopleCount.setText(peopleCount.toString())
             }
         }
         view.findViewById<MaterialButton>(R.id.btn_people_plus).setOnClickListener {
-            if (peopleCount < 99) {
-                peopleCount++
-                tvPeopleCount.text = peopleCount.toString()
+            val current = tvPeopleCount.text.toString().toIntOrNull() ?: 1
+            if (current < 999) {
+                peopleCount = current + 1
+                tvPeopleCount.setText(peopleCount.toString())
             }
         }
 
@@ -115,11 +118,11 @@ class CitizenFragment : Fragment() {
         btnBeacon.setOnClickListener {
             AcousticBeacon.toggle(requireContext())
             if (AcousticBeacon.isPlaying) {
-                btnBeacon.text = "⏹ STOP BEACON"
-                btnBeacon.setBackgroundColor(android.graphics.Color.RED)
+                btnBeacon.text = "⏹  STOP BEACON"
+                btnBeacon.setBackgroundResource(R.drawable.bg_sos_medical)
             } else {
-                btnBeacon.text = "📢 SOUND BEACON (Victim Locator)"
-                btnBeacon.setBackgroundColor(android.graphics.Color.parseColor("#00d4ff"))
+                btnBeacon.text = "SOUND BEACON"
+                btnBeacon.setBackgroundResource(R.drawable.bg_beacon_button)
             }
         }
 
@@ -131,6 +134,7 @@ class CitizenFragment : Fragment() {
         viewModel.sosSent.observe(viewLifecycleOwner) { sent ->
             if (sent) {
                 Toast.makeText(requireContext(), "SOS sent to mesh!", Toast.LENGTH_SHORT).show()
+                viewModel.resetSosSent()
             }
         }
     }
@@ -155,11 +159,11 @@ class CitizenFragment : Fragment() {
     private fun showProximityBanner(distanceM: Float, status: String, people: Int) {
         val distStr = if (distanceM < 1000f) "${distanceM.toInt()}m" else "${"%.1f".format(distanceM / 1000)}km"
         val emoji = when (status) {
-            "MEDICAL" -> "🔴"
-            "TRAPPED" -> "🟠"
-            "HAZARD"  -> "🟡"
-            "SAFE"    -> "🟢"
-            else      -> "⚠️"
+            "MEDICAL" -> "MED"
+            "TRAPPED" -> "TRP"
+            "HAZARD"  -> "HAZ"
+            "SAFE"    -> "OK"
+            else      -> "SOS"
         }
         proximityText?.text =
             "$emoji Survivor ${distStr} away — $status · $people person${if (people > 1) "s" else ""}\nTap × to dismiss"
@@ -173,7 +177,7 @@ class CitizenFragment : Fragment() {
 
     // ── SOS submission ─────────────────────────────────────────────────────────
 
-    private fun sendSos(status: String, etNote: TextInputEditText, tvStatus: TextView) {
+    private fun sendSos(status: String, etNote: EditText, tvStatus: TextView) {
         grabLocation() // Refresh location
         if (!viewModel.canSendSos(status)) {
             Toast.makeText(
@@ -184,6 +188,8 @@ class CitizenFragment : Fragment() {
             return
         }
         val note = etNote.text?.toString() ?: ""
+        // Read people count from editable field
+        peopleCount = (view?.findViewById<EditText>(R.id.tv_people_count)?.text?.toString()?.toIntOrNull() ?: peopleCount).coerceIn(1, 999)
         viewModel.sendSos(
             status = status,
             note = note,

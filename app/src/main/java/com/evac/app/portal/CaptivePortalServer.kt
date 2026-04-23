@@ -94,17 +94,17 @@ class CaptivePortalServer(
                 </style>
             </head>
             <body>
-                <h1>🚨 EVAC Emergency Portal</h1>
+                <h1>EVAC Emergency Portal</h1>
                 <h2>Active Bulletins</h2>
                 $bulletinHtml
                 <hr>
                 <h2>Send SOS</h2>
                 <form method="POST" action="/sos">
                     <select name="status">
-                        <option value="MEDICAL">🚑 Medical Emergency</option>
-                        <option value="TRAPPED">🆘 Trapped</option>
-                        <option value="HAZARD">⚠️ Hazard</option>
-                        <option value="SAFE">✅ I'm Safe</option>
+                        <option value="MEDICAL">Medical Emergency</option>
+                        <option value="TRAPPED">Trapped</option>
+                        <option value="HAZARD">Hazard</option>
+                        <option value="SAFE">I'm Safe</option>
                     </select>
                     <input type="number" name="people" placeholder="Number of people" min="1" max="10" value="1">
                     <textarea name="note" placeholder="Details (optional)" maxlength="100"></textarea>
@@ -165,7 +165,7 @@ class CaptivePortalServer(
                 padding:20px;text-align:center;}
                 h1{color:#388E3C;} a{color:#E94560;}</style>
                 </head><body>
-                <h1>✅ SOS Sent!</h1>
+                <h1>SOS Sent!</h1>
                 <p>Your $status signal has been received.</p>
                 <p>Help is being coordinated.</p>
                 <a href="/">← Back to portal</a>

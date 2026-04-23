@@ -41,7 +41,7 @@ class ChatFragment : Fragment() {
         recyclerView.adapter = adapter
 
         // Welcome message
-        addBotMessage("👋 Welcome to Survival AI!", "I'm your offline survival assistant. Ask me about:\n\n💧 Water  •  🩹 First Aid  •  🏚️ Earthquake\n🌊 Flood  •  🔥 Fire  •  ❤️ CPR\n🏕️ Shelter  •  📡 Signaling  •  🧘 Panic\n\nType a topic or tap a quick action below!")
+        addBotMessage("Welcome to Evac Bot!", "I'm your offline assistant - ask me about survival, general knowledge, math, trivia, or anything!\n\nWater  |  First Aid  |  Earthquake\nFlood  |  Fire  |  CPR\nTrivia  |  Math  |  General\n\nType anything or tap a quick action below!")
 
         btnSend.setOnClickListener {
             val text = etInput.text?.toString()?.trim() ?: ""
@@ -113,9 +113,9 @@ class ChatFragment : Fragment() {
                 holder.container.gravity = Gravity.END
                 val tv = TextView(holder.container.context).apply {
                     text = msg.text
-                    setTextColor(Color.BLACK)
+                    setTextColor(Color.parseColor("#FFFFFF"))
                     setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
-                    setBackgroundColor(Color.parseColor("#00D4FF"))
+                    setBackgroundColor(Color.parseColor("#1AFFFFFF"))
                     setPadding(32, 20, 32, 20)
                     val lp = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -130,7 +130,7 @@ class ChatFragment : Fragment() {
                 if (msg.title != null) {
                     val titleTv = TextView(holder.container.context).apply {
                         text = msg.title
-                        setTextColor(Color.parseColor("#00D4FF"))
+                        setTextColor(Color.parseColor("#FFFFFF"))
                         setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15f)
                         setTypeface(null, android.graphics.Typeface.BOLD)
                         setPadding(16, 8, 16, 4)
@@ -139,9 +139,9 @@ class ChatFragment : Fragment() {
                 }
                 val tv = TextView(holder.container.context).apply {
                     text = msg.text
-                    setTextColor(Color.parseColor("#CCCCCC"))
+                    setTextColor(Color.parseColor("#F0F0F5"))
                     setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f)
-                    setBackgroundColor(Color.parseColor("#1E1E2E"))
+                    setBackgroundColor(Color.parseColor("#BF333333"))
                     setPadding(32, 16, 32, 16)
                     setLineSpacing(4f, 1f)
                     val lp = LinearLayout.LayoutParams(

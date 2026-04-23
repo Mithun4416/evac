@@ -3,16 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1a1a2e">
+    android:background="@drawable/bg_glass_surface">
 
-    <!-- Top Bar -->
+    <!-- ═══ GLASS TOP BAR ═══ -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#0D1117"
+        android:background="@drawable/bg_glass_bottom_nav"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:padding="14dp"
+        android:gravity="center_vertical"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
@@ -26,29 +27,32 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🛡️ RESPONDER MODE"
-                android:textColor="#00D4FF"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textColor="@color/evac_accent"
+                android:textSize="@dimen/text_body"
+                android:textStyle="bold"
+                android:letterSpacing="0.05" />
 
             <TextView
                 android:id="@+id/tvSyncStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Syncing location..."
-                android:textColor="#888899"
-                android:textSize="10sp" />
+                android:textColor="@color/text_tertiary"
+                android:textSize="@dimen/text_caption" />
         </LinearLayout>
 
         <ImageView
             android:id="@+id/btnLogout"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:layout_gravity="center_vertical"
             android:src="@android:drawable/ic_lock_power_off"
-            app:tint="#E94560" />
+            android:background="@drawable/bg_glass_status_badge"
+            android:padding="4dp"
+            app:tint="@color/error_red" />
     </LinearLayout>
 
-    <!-- Map Area (Top 50%) -->
+    <!-- ═══ MAP AREA (Top 50%) ═══ -->
     <org.osmdroid.views.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
@@ -56,20 +60,21 @@
         app:layout_constraintHeight_percent="0.5"
         app:layout_constraintTop_toBottomOf="@id/topBar" />
 
-    <!-- Task List Header -->
+    <!-- ═══ GLASS TASK LIST HEADER ═══ -->
     <TextView
         android:id="@+id/tvTaskHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#1a1a2e"
-        android:padding="12dp"
+        android:background="@drawable/bg_glass_bottom_nav"
+        android:padding="14dp"
         android:text="NEARBY ALERTS (5KM)"
-        android:textColor="#FFFFFF"
-        android:textSize="12sp"
+        android:textColor="@color/text_primary"
+        android:textSize="@dimen/text_small"
         android:textStyle="bold"
+        android:letterSpacing="0.08"
         app:layout_constraintTop_toBottomOf="@id/mapView" />
 
-    <!-- Task List (Bottom) -->
+    <!-- ═══ TASK LIST ═══ -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTasks"
         android:layout_width="match_parent"

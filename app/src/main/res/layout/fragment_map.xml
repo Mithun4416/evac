@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/evac_dark">
+    android:background="@color/evac_bg_deep">
 
     <!-- OSMDroid Map -->
     <org.osmdroid.views.MapView
@@ -10,24 +11,40 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <!-- Map Status Bar -->
+    <TextView
+        android:id="@+id/tvMapStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_map_overlay"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:textColor="@color/text_primary"
+        android:textSize="@dimen/text_small"
+        android:letterSpacing="0.03"
+        android:text="SOS Map - Field Responder View"/>
+
     <!-- Haversine Fallback List (initially hidden) -->
     <LinearLayout
         android:id="@+id/fallback_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="#0D1117"
+        android:background="@drawable/bg_glass_surface"
         android:visibility="gone">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📍 Nearby Safe Spots (Offline)"
-            android:textColor="#58A6FF"
-            android:textSize="14sp"
+            android:text="Nearby Safe Spots (Offline)"
+            android:textColor="@color/evac_accent"
+            android:textSize="@dimen/text_body"
             android:textStyle="bold"
-            android:background="#161B22"
-            android:padding="12dp" />
+            android:letterSpacing="0.03"
+            android:background="@drawable/bg_glass_bottom_nav"
+            android:padding="14dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_safespot_fallback"
@@ -36,69 +53,58 @@
             android:clipToPadding="false" />
     </LinearLayout>
 
-    <!-- Map status bar -->
-    <TextView
-        android:id="@+id/tvMapStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="8dp"
-        android:background="#AA000000"
-        android:padding="8dp"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        android:text="SOS Map — Field Responder View"/>
-
-    <!-- Bottom controls panel -->
+    <!-- Floating Controls Panel -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:padding="16dp"
+        android:padding="12dp"
         android:orientation="vertical">
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/sw_extended_range"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🚁 Extended Range"
-            android:textColor="@color/white"
-            android:background="#AA000000"
-            android:padding="8dp"
-            android:layout_marginBottom="8dp"/>
+            android:text="Extended Range"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_small"
+            android:background="@drawable/bg_map_overlay"
+            android:padding="10dp"
+            android:layout_marginBottom="6dp"/>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/sw_list_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📋 List View"
-            android:textColor="@color/white"
-            android:background="#AA000000"
-            android:padding="8dp"
-            android:layout_marginBottom="8dp"/>
-
-        <Spinner
-            android:id="@+id/spinner_disaster_type"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#AA000000"
-            android:padding="8dp"
-            android:layout_marginBottom="8dp"/>
+            android:text="List View"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_small"
+            android:background="@drawable/bg_map_overlay"
+            android:padding="10dp"
+            android:layout_marginBottom="6dp"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_safe_spots"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Show Safe Spots"
-            android:backgroundTint="#43A047"/>
+            android:layout_height="44dp"
+            android:text="Safe Spots"
+            android:textSize="@dimen/text_caption"
+            android:textColor="@color/sos_safe"
+            android:background="@drawable/bg_sos_safe"
+            app:backgroundTint="@null"
+            app:rippleColor="@color/sos_safe_bg"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_sync_safespots"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="⟳ Sync SafeSpots"
-            android:backgroundTint="#1E88E5"
-            android:layout_marginTop="4dp"/>
+            android:layout_height="44dp"
+            android:text="Sync Spots"
+            android:textSize="@dimen/text_caption"
+            android:textColor="@color/evac_accent"
+            android:background="@drawable/bg_glass_button"
+            android:layout_marginTop="4dp"
+            app:backgroundTint="@null"
+            app:rippleColor="@color/evac_accent_glow"/>
     </LinearLayout>
 
 </FrameLayout>

@@ -3,18 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="12dp"
+    android:padding="14dp"
     android:gravity="center_vertical"
-    android:background="#0D1117"
-    android:layout_marginBottom="1dp">
+    android:background="@drawable/bg_glass_card"
+    android:layout_marginHorizontal="10dp"
+    android:layout_marginBottom="8dp">
 
     <!-- Type icon -->
     <ImageView
         android:id="@+id/iv_spot_icon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:src="@drawable/ic_spot_default"
-        android:contentDescription="Spot type icon" />
+        android:contentDescription="Spot type icon"
+        android:background="@drawable/bg_glass_status_badge"
+        android:padding="6dp" />
 
     <!-- Name + Type -->
     <LinearLayout
@@ -22,14 +25,14 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_marginStart="12dp">
+        android:layout_marginStart="14dp">
 
         <TextView
             android:id="@+id/tv_spot_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#E6EDF3"
-            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
             android:textStyle="bold"
             android:maxLines="1"
             android:ellipsize="end" />
@@ -38,8 +41,8 @@
             android:id="@+id/tv_spot_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#8B949E"
-            android:textSize="11sp"
+            android:textColor="@color/text_tertiary"
+            android:textSize="@dimen/text_small"
             android:layout_marginTop="2dp" />
     </LinearLayout>
 
@@ -54,16 +57,16 @@
             android:id="@+id/tv_spot_distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#58A6FF"
-            android:textSize="14sp"
+            android:textColor="@color/evac_accent"
+            android:textSize="@dimen/text_body"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tv_spot_direction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#8B949E"
-            android:textSize="11sp"
+            android:textColor="@color/text_tertiary"
+            android:textSize="@dimen/text_small"
             android:layout_marginTop="2dp" />
     </LinearLayout>
 </LinearLayout>

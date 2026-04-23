@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1a1a2e">
+    android:background="@drawable/bg_glass_surface"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,90 +13,111 @@
         android:padding="24dp"
         android:gravity="center_horizontal">
 
-        <!-- Header -->
+        <!-- ═══ HEADER ═══ -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="🛡️"
-            android:textSize="48sp"
-            android:layout_marginTop="40dp"/>
+            android:textSize="52sp"
+            android:layout_marginTop="48dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="FIELD RESPONDER"
-            android:textSize="24sp"
-            android:textColor="#00D4FF"
+            android:textSize="22sp"
+            android:textColor="@color/evac_accent"
             android:textStyle="bold"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:letterSpacing="0.15"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Authorized Personnel Only"
-            android:textSize="12sp"
-            android:textColor="#555566"
-            android:layout_marginBottom="32dp"
-            android:layout_marginTop="4dp"/>
+            android:textSize="@dimen/text_small"
+            android:textColor="@color/text_tertiary"
+            android:layout_marginBottom="36dp"
+            android:layout_marginTop="6dp"
+            android:letterSpacing="0.05"/>
 
-        <!-- Email Field -->
-        <com.google.android.material.textfield.TextInputLayout
+        <!-- ═══ LOGIN FORM (Glass Card) ═══ -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:hint="Responder Email"
-            app:hintTextColor="#00D4FF"
-            app:boxStrokeColor="#00D4FF"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            android:orientation="vertical"
+            android:background="@drawable/bg_glass_card"
+            android:padding="20dp">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etEmail"
+            <!-- Email Field -->
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textEmailAddress"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#555566"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginBottom="16dp"
+                android:hint="Responder Email"
+                app:hintTextColor="@color/evac_accent"
+                app:boxStrokeColor="@color/glass_border_accent"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <!-- Password Field -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:hint="Access Code"
-            app:hintTextColor="#00D4FF"
-            app:boxStrokeColor="#00D4FF"
-            app:passwordToggleEnabled="true"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_tertiary"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPassword"
+            <!-- Password Field -->
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#555566"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginBottom="20dp"
+                android:hint="Access Code"
+                app:hintTextColor="@color/evac_accent"
+                app:boxStrokeColor="@color/glass_border_accent"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
+                app:passwordToggleEnabled="true"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <!-- Login Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnLogin"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="AUTHENTICATE"
-            android:backgroundTint="#00D4FF"
-            android:textColor="#000000"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"/>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_tertiary"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Login Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height"
+                android:text="AUTHENTICATE"
+                android:background="@drawable/bg_glass_card_highlight"
+                android:textColor="@color/evac_accent"
+                android:textSize="@dimen/text_body"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                app:backgroundTint="@null"
+                app:rippleColor="@color/evac_accent_glow"/>
+
+        </LinearLayout>
 
         <!-- Error / Status -->
         <TextView
             android:id="@+id/tvError"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#E94560"
+            android:textColor="@color/error_red"
             android:textSize="13sp"
             android:layout_marginTop="16dp"
             android:gravity="center"
@@ -108,10 +130,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#0D1117"
-            app:cardCornerRadius="12dp"
-            app:strokeColor="#00FF88"
-            app:strokeWidth="1dp">
+            app:cardBackgroundColor="@color/glass_surface"
+            app:cardCornerRadius="@dimen/card_radius"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/sos_safe_border"
+            app:strokeWidth="@dimen/glass_border_width_strong">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -124,7 +147,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="✅ AUTHENTICATED"
-                    android:textColor="#00FF88"
+                    android:textColor="@color/success_green"
                     android:textStyle="bold"
                     android:textSize="16sp"/>
 
@@ -132,8 +155,8 @@
                     android:id="@+id/tvLoggedInAs"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#888899"
-                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="@dimen/text_small"
                     android:layout_marginTop="4dp"/>
 
                 <com.google.android.material.button.MaterialButton
@@ -141,9 +164,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="LOGOUT"
-                    android:backgroundTint="#E94560"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginTop="12dp"/>
+                    android:textColor="@color/error_red"
+                    android:background="@drawable/bg_glass_button"
+                    android:layout_marginTop="12dp"
+                    app:backgroundTint="@null"
+                    app:rippleColor="@color/sos_medical_bg"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

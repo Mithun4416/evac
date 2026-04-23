@@ -1,11 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.Evac" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand colors -->
         <item name="colorPrimary">@color/evac_accent</item>
-        <item name="colorPrimaryDark">@color/evac_dark</item>
+        <item name="colorPrimaryDark">@color/evac_bg_deep</item>
         <item name="colorAccent">@color/evac_accent</item>
-        <item name="android:windowBackground">@color/evac_dark</item>
-        <item name="android:statusBarColor">@color/evac_dark</item>
-        <item name="android:navigationBarColor">@color/evac_dark</item>
+
+        <!-- Surface colors -->
+        <item name="android:colorBackground">@color/evac_bg_deep</item>
+        <item name="colorSurface">@color/evac_bg_primary</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <!-- System bars — deep charcoal for immersion -->
+        <item name="android:windowBackground">@color/evac_bg_deep</item>
+        <item name="android:statusBarColor">@color/evac_bg_deep</item>
+        <item name="android:navigationBarColor">@color/evac_bg_deep</item>
+
+        <!-- Text input styling -->
+        <item name="colorOnPrimary">@color/evac_bg_deep</item>
+
+        <!-- Default card style -->
+        <item name="materialCardViewStyle">@style/GlassCard</item>
+    </style>
+
+    <!-- Glass Card Style -->
+    <style name="GlassCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/glass_surface</item>
+        <item name="cardCornerRadius">@dimen/card_radius</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <!-- Glass Button Style -->
+    <style name="GlassButton" parent="Widget.MaterialComponents.Button">
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0.05</item>
+    </style>
+
+    <!-- Glass Text Input -->
+    <style name="GlassTextInput" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/glass_border</item>
+        <item name="boxStrokeWidth">1.5dp</item>
+        <item name="boxBackgroundColor">@color/glass_surface</item>
+        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxCornerRadiusTopEnd">16dp</item>
+        <item name="boxCornerRadiusBottomStart">16dp</item>
+        <item name="boxCornerRadiusBottomEnd">16dp</item>
+        <item name="hintTextColor">@color/evac_accent</item>
     </style>
 </resources>

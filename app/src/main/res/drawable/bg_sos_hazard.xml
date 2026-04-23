@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/sos_hazard_bg" />
+    <corners android:radius="@dimen/sos_button_radius" />
+    <stroke
+        android:width="@dimen/glass_border_width_strong"
+        android:color="@color/sos_hazard_border" />
+</shape>

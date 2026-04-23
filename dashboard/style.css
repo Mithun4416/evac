@@ -5,21 +5,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap');
 
 :root {
-    --bg-dark: #060610;
-    --bg-panel: rgba(12, 14, 28, 0.85);
-    --border: rgba(0, 200, 255, 0.12);
-    --border-bright: rgba(0, 200, 255, 0.3);
-    --primary: #00d4ff;
-    --primary-dim: rgba(0, 212, 255, 0.15);
-    --secondary: #7b2fff;
-    --accent: #ff003c;
-    --accent-dim: rgba(255, 0, 60, 0.15);
-    --green: #00ff88;
-    --green-dim: rgba(0, 255, 136, 0.15);
-    --orange: #ff9500;
-    --yellow: #ffd600;
-    --text: #d8dce8;
-    --text-dim: #6a7090;
+    --bg-dark: #0F0F0F;
+    --bg-panel: rgba(26, 26, 26, 0.85);
+    --border: rgba(255, 255, 255, 0.12);
+    --border-bright: rgba(255, 255, 255, 0.3);
+    --primary: #FFFFFF;
+    --primary-dim: rgba(255, 255, 255, 0.15);
+    --secondary: #8A8A8A;
+    --accent: #FF3B5C;
+    --accent-dim: rgba(255, 59, 92, 0.15);
+    --green: #4ADE80;
+    --green-dim: rgba(74, 222, 128, 0.15);
+    --orange: #FF8C42;
+    --yellow: #FFD54F;
+    --text: #F5F5F5;
+    --text-dim: #A0A0A0;
     --mono: 'Share Tech Mono', monospace;
     --sans: 'Exo 2', sans-serif;
     --glass: blur(20px);
@@ -42,10 +42,10 @@ body {
     overflow: hidden;
     height: 100vh;
     background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(0, 212, 255, 0.03) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(123, 47, 255, 0.03) 0%, transparent 50%),
-        linear-gradient(rgba(0, 200, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 200, 255, 0.015) 1px, transparent 1px);
+        radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
     background-size: 100%, 100%, 40px 40px, 40px 40px;
 }
 
@@ -72,16 +72,11 @@ body {
     pointer-events: none;
 }
 
-.startup-logo {
-    font-family: var(--sans);
-    font-size: 56px;
-    font-weight: 900;
-    letter-spacing: 8px;
-    background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.startup-logo-img {
+    width: 220px;
+    height: auto;
     animation: glitch 2.5s infinite;
+    filter: drop-shadow(0 0 24px rgba(255, 255, 255, 0.45));
 }
 
 .startup-sub {
@@ -160,9 +155,9 @@ body {
     justify-content: center;
     background: var(--bg-dark);
     background-image:
-        radial-gradient(ellipse at 50% 50%, rgba(0, 212, 255, 0.06) 0%, transparent 60%),
-        linear-gradient(rgba(0, 200, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 200, 255, 0.02) 1px, transparent 1px);
+        radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.06) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     background-size: 100%, 40px 40px, 40px 40px;
     transition: opacity 0.6s ease, visibility 0.6s ease;
 }
@@ -182,7 +177,7 @@ body {
     border-radius: 16px;
     padding: 48px 36px;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 212, 255, 0.05);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 255, 255, 0.05);
     animation: fadeUp 0.5s ease;
 }
 
@@ -198,15 +193,11 @@ body {
     }
 }
 
-.login-card h1 {
-    font-size: 36px;
-    font-weight: 900;
-    letter-spacing: 4px;
-    background: linear-gradient(to right, #fff, var(--primary));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 6px;
+.login-logo-img {
+    width: 180px;
+    height: auto;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.4));
 }
 
 .login-card .subtitle {
@@ -233,7 +224,7 @@ body {
 .login-card input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
 }
 
 .login-card input::placeholder {
@@ -337,11 +328,10 @@ body {
     }
 }
 
-.topbar-left h1 {
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 3px;
-    color: #fff;
+.topbar-logo-img {
+    height: 28px;
+    width: auto;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
 }
 
 .topbar-left span {
@@ -478,7 +468,7 @@ body {
 
 .stat-sos .stat-number {
     color: var(--primary);
-    text-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
 .stat-sos::after {

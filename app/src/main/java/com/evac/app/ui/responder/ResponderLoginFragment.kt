@@ -56,7 +56,7 @@ class ResponderLoginFragment : Fragment() {
 
             auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener {
-                    Toast.makeText(context, "✅ Authenticated as Field Responder", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Authenticated as Field Responder", Toast.LENGTH_SHORT).show()
                     showLoggedInState(view, email)
                 }
                 .addOnFailureListener { e ->

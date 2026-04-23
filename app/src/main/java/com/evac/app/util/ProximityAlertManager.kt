@@ -81,7 +81,7 @@ object ProximityAlertManager {
             alreadyAlerted.add(sosId)
             val distStr = formatDistance(distanceM)
 
-            Log.i(TAG, "⚠️ NEARBY SURVIVOR DETECTED — $sosStatus, $distStr away")
+            Log.i(TAG, "NEARBY SURVIVOR DETECTED — $sosStatus, $distStr away")
 
             // Fire notification
             fireNotification(ctx, sosStatus, peopleCount, distStr, sosId)
@@ -133,15 +133,7 @@ object ProximityAlertManager {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val emoji = when (status) {
-            "MEDICAL" -> "🔴"
-            "TRAPPED" -> "🟠"
-            "HAZARD"  -> "🟡"
-            "SAFE"    -> "🟢"
-            else      -> "⚠️"
-        }
-
-        val title = "$emoji Survivor Nearby — $distStr Away"
+        val title = "Survivor Nearby — $distStr Away"
         val body = "$status signal · $people person${if (people > 1) "s" else ""} · Tap to view map"
 
         val notif = NotificationCompat.Builder(ctx, CHANNEL_ID)

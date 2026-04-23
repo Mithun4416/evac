@@ -37,17 +37,26 @@ class BulletinAdapter : RecyclerView.Adapter<BulletinAdapter.ViewHolder>() {
         fun bind(message: MessageEntity) {
             // Type label
             tvType.text = when (message.type) {
-                "BULLETIN" -> "📢 BULLETIN"
-                "ACK"      -> "✅ ACK — Response received"
+                "BULLETIN" -> "BULLETIN"
+                "ACK"      -> "ACK — Response received"
                 else       -> message.type
             }
 
             // Body
             tvBody.text = message.body ?: "No content"
 
-            // Time ago
-            val minutesAgo = (System.currentTimeMillis() - message.timestamp) / 60_000
-            tvTime.text = "$minutesAgo min ago"
+            // Time ago (dynamic)
+            val elapsed = System.currentTimeMillis() - message.timestamp
+            val seconds = elapsed / 1000
+            val minutes = seconds / 60
+            val hours = minutes / 60
+            val days = hours / 24
+            tvTime.text = when {
+                seconds < 60 -> "${seconds}s ago"
+                minutes < 60 -> "${minutes}m ago"
+                hours < 24   -> "${hours}h ago"
+                else         -> "${days}d ago"
+            }
         }
     }
 }

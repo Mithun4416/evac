@@ -48,34 +48,34 @@ class SosTaskAdapter(
             tvStatus.text = task.status
             when (task.status) {
                 "MEDICAL" -> {
-                    tvStatus.setTextColor(Color.parseColor("#FF0040"))
-                    tvStatus.setBackgroundColor(Color.parseColor("#330000"))
+                    tvStatus.setTextColor(Color.parseColor("#FF3B5C"))
+                    tvStatus.setBackgroundColor(Color.parseColor("#33FF3B5C"))
                 }
                 "TRAPPED" -> {
-                    tvStatus.setTextColor(Color.parseColor("#FF9500"))
-                    tvStatus.setBackgroundColor(Color.parseColor("#331A00"))
+                    tvStatus.setTextColor(Color.parseColor("#FF8C42"))
+                    tvStatus.setBackgroundColor(Color.parseColor("#33FF8C42"))
                 }
                 "HAZARD" -> {
-                    tvStatus.setTextColor(Color.parseColor("#FFD600"))
-                    tvStatus.setBackgroundColor(Color.parseColor("#333300"))
+                    tvStatus.setTextColor(Color.parseColor("#FFD54F"))
+                    tvStatus.setBackgroundColor(Color.parseColor("#33FFD54F"))
                 }
                 "SAFE" -> {
-                    tvStatus.setTextColor(Color.parseColor("#00FF88"))
-                    tvStatus.setBackgroundColor(Color.parseColor("#00331A"))
+                    tvStatus.setTextColor(Color.parseColor("#4ADE80"))
+                    tvStatus.setBackgroundColor(Color.parseColor("#334ADE80"))
                 }
                 else -> {
-                    tvStatus.setTextColor(Color.parseColor("#888899"))
-                    tvStatus.setBackgroundColor(Color.parseColor("#222233"))
+                    tvStatus.setTextColor(Color.parseColor("#8888AA"))
+                    tvStatus.setBackgroundColor(Color.parseColor("#4D0D0D1A"))
                 }
             }
 
             if (task.isAssignedToMe) {
                 tvAssignedIndicator.visibility = View.VISIBLE
-                cardContainer.strokeColor = Color.parseColor("#00D4FF")
-                cardContainer.strokeWidth = 3
+                cardContainer.strokeColor = Color.parseColor("#4DFFFFFF")
+                cardContainer.strokeWidth = 2
             } else {
                 tvAssignedIndicator.visibility = View.GONE
-                cardContainer.strokeColor = Color.parseColor("#333344")
+                cardContainer.strokeColor = Color.parseColor("#1FFFFFFF")
                 cardContainer.strokeWidth = 1
             }
 
@@ -83,8 +83,8 @@ class SosTaskAdapter(
             val etaStr = if (task.etaMinutes > 0) " · ${task.etaMinutes}m ETA" else ""
             tvDistanceEta.text = "$distKm$etaStr"
 
-            val details = StringBuilder("👥 ${task.peopleCount}")
-            if (task.batteryPct != null) details.append("  |  🔋 ${task.batteryPct}%")
+            val details = StringBuilder("People: ${task.peopleCount}")
+            if (task.batteryPct != null) details.append("  |  Batt: ${task.batteryPct}%")
             if (!task.note.isNullOrBlank()) details.append("\n\"${task.note}\"")
             tvDetails.text = details.toString()
 

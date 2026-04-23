@@ -11,10 +11,10 @@
     <!-- Citizen screen -->
     <string name="emergency_sos">Emergency SOS</string>
     <string name="number_of_people">Number of people:</string>
-    <string name="btn_medical">🚑 MEDICAL</string>
-    <string name="btn_trapped">🆘 TRAPPED</string>
-    <string name="btn_hazard">⚠️ HAZARD</string>
-    <string name="btn_safe">✅ I\'M SAFE</string>
+    <string name="btn_medical">MEDICAL</string>
+    <string name="btn_trapped">TRAPPED</string>
+    <string name="btn_hazard">HAZARD</string>
+    <string name="btn_safe">I\'M SAFE</string>
     <string name="note_hint">Additional details (optional, 100 chars max)</string>
     <string name="sos_sent">SOS sent: %1$s</string>
     <string name="sos_rate_limit">Please wait 2 minutes before sending another SOS</string>

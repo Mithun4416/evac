@@ -35,6 +35,10 @@ class CitizenViewModel(application: Application) : AndroidViewModel(application)
     private val _statusMsg = MutableLiveData<String>()
     val statusMsg: LiveData<String> = _statusMsg
 
+    fun resetSosSent() {
+        _sosSent.value = false
+    }
+
     private var meshService: MeshService? = null
     private var lastSosTime = 0L
 

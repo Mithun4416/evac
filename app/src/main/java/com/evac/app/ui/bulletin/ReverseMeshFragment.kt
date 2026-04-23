@@ -96,7 +96,7 @@ class ReverseMeshFragment : Fragment() {
                     viewModel.incomingBulletinEvent.collect { bulletin ->
                         Toast.makeText(
                             requireContext(),
-                            "📢 New Bulletin: ${bulletin.message.take(80)}",
+                            "New Bulletin: ${bulletin.message.take(80)}",
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -116,7 +116,7 @@ class ReverseMeshFragment : Fragment() {
             .format(Date(timestampMs))
 
         AlertDialog.Builder(requireContext())
-            .setTitle("🎯 Response from Command Center")
+            .setTitle("Response from Command Center")
             .setMessage("$message\n\nReceived at: $formattedTime")
             .setPositiveButton("OK", null)
             .setCancelable(false)

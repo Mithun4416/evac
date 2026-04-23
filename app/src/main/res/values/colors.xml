@@ -1,27 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App base colors -->
+    <!-- ═══ Base ═══ -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- EVAC brand -->
-    <color name="evac_red">#D32F2F</color>
-    <color name="evac_orange">#F57C00</color>
-    <color name="evac_yellow">#FBC02D</color>
-    <color name="evac_green">#388E3C</color>
-    <color name="evac_dark">#1A1A2E</color>
-    <color name="evac_surface">#16213E</color>
-    <color name="evac_accent">#E94560</color>
+    <!-- ═══ EVAC — Background Layers (neutral charcoal) ═══ -->
+    <color name="evac_bg_deep">#1A1A1A</color>
+    <color name="evac_bg_primary">#222222</color>
+    <color name="evac_bg_elevated">#2C2C2C</color>
 
-    <!-- SOS button colors -->
-    <color name="sos_medical">#D32F2F</color>
-    <color name="sos_trapped">#F57C00</color>
-    <color name="sos_hazard">#FBC02D</color>
-    <color name="sos_safe">#388E3C</color>
+    <!-- ═══ Flat Surfaces (Solid Grey) ═══ -->
+    <color name="glass_surface">#333333</color>            <!-- Solid -->
+    <color name="glass_surface_light">#3D3D3D</color>      <!-- Solid -->
+    <color name="glass_surface_dark">#252525</color>        <!-- Solid -->
+    <color name="glass_surface_input">#303030</color>       <!-- Solid -->
+    <color name="glass_overlay">#2A2A2A</color>             <!-- Solid -->
 
-    <!-- UI colors -->
+    <!-- ═══ Flat Borders (Solid) ═══ -->
+    <color name="glass_border">#333333</color>              <!-- Solid Dark Grey -->
+    <color name="glass_border_strong">#555555</color>       <!-- Solid Grey -->
+    <color name="glass_border_accent">#888888</color>       <!-- Solid Light Grey -->
+
+    <!-- ═══ EVAC Brand (Classic White) ═══ -->
+    <color name="evac_dark">#1A1A1A</color>
+    <color name="evac_surface">#2C2C2C</color>
+    <color name="evac_accent">#FFFFFF</color>
+    <color name="evac_accent_dim">#99FFFFFF</color>
+    <color name="evac_accent_glow">#33FFFFFF</color>
+
+    <!-- ═══ SOS Semantic Colors (vibrant) ═══ -->
+    <color name="evac_red">#FF3B5C</color>
+    <color name="evac_orange">#FF8C42</color>
+    <color name="evac_yellow">#FFD54F</color>
+    <color name="evac_green">#4ADE80</color>
+
+    <color name="sos_medical">#FF3B5C</color>
+    <color name="sos_medical_bg">#4D1520</color>
+    <color name="sos_medical_border">#FF3B5C</color>
+
+    <color name="sos_trapped">#FF8C42</color>
+    <color name="sos_trapped_bg">#4D2E15</color>
+    <color name="sos_trapped_border">#FF8C42</color>
+
+    <color name="sos_hazard">#FFD54F</color>
+    <color name="sos_hazard_bg">#4D4418</color>
+    <color name="sos_hazard_border">#FFD54F</color>
+
+    <color name="sos_safe">#4ADE80</color>
+    <color name="sos_safe_bg">#1A3D26</color>
+    <color name="sos_safe_border">#4ADE80</color>
+
+    <!-- ═══ Beacon (now bright white) ═══ -->
+    <color name="beacon_cyan">#FFFFFF</color>
+    <color name="beacon_bg">#3D3D3D</color>
+    <color name="beacon_border">#FFFFFF</color>
+
+    <!-- ═══ UI Text ═══ -->
     <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#B0BEC5</color>
-    <color name="card_background">#1E1E2E</color>
-    <color name="divider">#2A2A3E</color>
+    <color name="text_secondary">#BBBBBB</color>
+    <color name="text_tertiary">#808080</color>
+    <color name="text_accent">#FFFFFF</color>
+
+    <!-- ═══ UI Misc ═══ -->
+    <color name="card_background">#BF333333</color>
+    <color name="divider">#1AFFFFFF</color>
+    <color name="error_red">#FF3B5C</color>
+    <color name="success_green">#4ADE80</color>
+
+    <!-- ═══ Bottom Nav ═══ -->
+    <color name="nav_active">#FFFFFF</color>
+    <color name="nav_inactive">#5A5A5A</color>
 </resources>

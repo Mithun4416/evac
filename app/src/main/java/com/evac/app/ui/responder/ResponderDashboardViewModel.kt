@@ -41,7 +41,11 @@ class ResponderDashboardViewModel(application: Application) : AndroidViewModel(a
                 Location.distanceBetween(loc.latitude, loc.longitude, msg.lat, msg.lng, results)
                 dist = results[0]
 
-                // Removed strict 5km radius filter so all alerts show up, sorted by distance.
+                // Enforce strict 5km radius filter
+                if (dist > 5000f && !isAssignedToMe) {
+                    continue // Skip if outside 5km (unless already assigned to them)
+                }
+
                 if (msg.assignedTo == null && dist < minDistance) {
                     minDistance = dist
                     closestUnassignedId = msg.id
@@ -78,8 +82,54 @@ class ResponderDashboardViewModel(application: Application) : AndroidViewModel(a
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    private var hasSyncedHistorical = false
+
     fun updateLocation(location: Location) {
         _currentLocation.value = location
+        if (!hasSyncedHistorical) {
+            hasSyncedHistorical = true
+            syncHistoricalIncidents(location)
+        }
+    }
+
+    private fun syncHistoricalIncidents(location: Location) {
+        Log.i("ResponderViewModel", "Syncing historical unresolved victims within 5km...")
+        db.collection("sos_messages")
+            .whereNotEqualTo("status", "SAFE")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                viewModelScope.launch(Dispatchers.IO) {
+                    var count = 0
+                    for (doc in snapshot.documents) {
+                        val lat = doc.getDouble("lat") ?: continue
+                        val lng = doc.getDouble("lng") ?: continue
+                        val results = FloatArray(1)
+                        Location.distanceBetween(location.latitude, location.longitude, lat, lng, results)
+
+                        if (results[0] <= 5000f) {
+                            val entity = com.evac.app.db.MessageEntity(
+                                id = doc.id,
+                                type = "SOS",
+                                status = doc.getString("status") ?: "UNKNOWN",
+                                deviceId = doc.getString("device_id") ?: "UNKNOWN",
+                                lat = lat,
+                                lng = lng,
+                                batteryPct = doc.getLong("battery_pct")?.toInt() ?: -1,
+                                note = doc.getString("note") ?: "",
+                                peopleCount = doc.getLong("people_count")?.toInt() ?: 1,
+                                timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis(),
+                                assignedTo = doc.getString("assigned_to")
+                            )
+                            dao.insert(entity)
+                            count++
+                        }
+                    }
+                    Log.i("ResponderViewModel", "Found and cached $count unresolved victims in 5km radius.")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ResponderViewModel", "Failed to sync historical victims", e)
+            }
     }
 
     private fun claimTask(taskId: String, responderEmail: String) {

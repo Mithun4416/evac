@@ -47,6 +47,7 @@ class MeshService : Service() {
     companion object {
         private const val TAG = "MeshService"
         private const val CHANNEL_ID = "evac_mesh_channel"
+        private const val ALERT_CHANNEL_ID = "evac_alerts_channel"
         private const val NOTIFICATION_ID = 1
         private const val TTL_CLEANUP_INTERVAL_MS = 30 * 60 * 1000L // 30 min
 
@@ -174,6 +175,17 @@ class MeshService : Service() {
                         val result = evacRepository.handleIncomingOfflinePayload(data, localDeviceId)
                         Log.i(TAG, "Reverse Mesh payload from $endpointId → $result")
 
+                        // Trigger High-Priority Push Notification
+                        when (result) {
+                            is EvacRepository.IncomingResult.NewBulletin -> {
+                                showHeadsUpNotification("Emergency Broadcast", result.bulletin.message)
+                            }
+                            is EvacRepository.IncomingResult.NewTargetedAck -> {
+                                showHeadsUpNotification("Rescuer Response Received", result.ack.message)
+                            }
+                            else -> {}
+                        }
+
                         // Notify UI
                         onReverseMeshResult?.invoke(result)
                     } else {
@@ -260,6 +272,9 @@ class MeshService : Service() {
                             val bytes = MeshPayloadSerializer.serialize(bulletin)
                             nearbyManager.broadcastPayload(bytes)
                             Log.i(TAG, "☁️→📡 Cloud BULLETIN ${entity.id} → Reverse Mesh relay")
+                            
+                            showHeadsUpNotification("Emergency Broadcast", bulletin.message)
+                            
                             onReverseMeshResult?.invoke(EvacRepository.IncomingResult.NewBulletin(bulletin))
                         }
                     }
@@ -280,6 +295,7 @@ class MeshService : Service() {
 
                             // UI: only notify if targeted at this device
                             if (ack.targetDeviceId == localDeviceId) {
+                                showHeadsUpNotification("Rescuer Response Received", ack.message)
                                 onReverseMeshResult?.invoke(EvacRepository.IncomingResult.NewTargetedAck(ack))
                             }
                         }
@@ -447,7 +463,30 @@ class MeshService : Service() {
             }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
+            
+            val alertChannel = NotificationChannel(
+                ALERT_CHANNEL_ID,
+                "Emergency Alerts",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "High priority offline mesh alerts"
+                enableVibration(true)
+            }
+            manager.createNotificationChannel(alertChannel)
         }
+    }
+
+    private fun showHeadsUpNotification(title: String, body: String) {
+        val manager = getSystemService(NotificationManager::class.java)
+        val notification = NotificationCompat.Builder(this, ALERT_CHANNEL_ID)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setSmallIcon(R.drawable.ic_evac_logo)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(Notification.DEFAULT_ALL)
+            .setAutoCancel(true)
+            .build()
+        manager.notify((System.currentTimeMillis() % 10000).toInt(), notification)
     }
 
     private fun buildNotification(): Notification {

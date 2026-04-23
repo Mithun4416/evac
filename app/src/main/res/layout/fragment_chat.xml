@@ -4,40 +4,56 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a2e">
+    android:background="@drawable/bg_glass_surface">
 
-    <!-- Header -->
+    <!-- ═══ GLASS HEADER ═══ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="#0D1117"
-        android:gravity="center_horizontal">
+        android:orientation="horizontal"
+        android:padding="14dp"
+        android:background="@drawable/bg_glass_bottom_nav"
+        android:gravity="center_vertical">
 
-        <TextView
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_evac_logo"
+            android:tint="@color/evac_accent"
+            android:contentDescription="EVAC Logo"
+            android:layout_marginEnd="12dp" />
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🤖 SURVIVAL AI"
-            android:textSize="20sp"
-            android:textColor="#00D4FF"
-            android:textStyle="bold"/>
+            android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Offline survival tips • No internet needed"
-            android:textSize="12sp"
-            android:textColor="#666677"
-            android:layout_marginTop="4dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Evac Bot"
+                android:textSize="@dimen/text_title"
+                android:textColor="@color/evac_accent"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your offline assistant"
+                android:textSize="@dimen/text_small"
+                android:textColor="@color/text_tertiary"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
     </LinearLayout>
 
+    <!-- ═══ ACCENT DIVIDER ═══ -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#00D4FF"/>
+        android:background="@color/glass_border_accent"/>
 
-    <!-- Chat Messages -->
+    <!-- ═══ CHAT MESSAGES ═══ -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_chat"
         android:layout_width="match_parent"
@@ -46,16 +62,16 @@
         android:padding="12dp"
         android:clipToPadding="false"/>
 
-    <!-- Quick Actions -->
+    <!-- ═══ QUICK ACTION CHIPS ═══ -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
-        android:background="#0D1117">
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:background="@drawable/bg_glass_bottom_nav">
 
         <LinearLayout
             android:id="@+id/quick_actions"
@@ -66,116 +82,125 @@
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💧 Water"
-                android:textColor="#FFFFFF"
-                app:chipBackgroundColor="#1E1E2E"
-                app:chipStrokeColor="#333344"
+                android:text="Water"
+                android:textColor="@color/text_primary"
+                app:chipBackgroundColor="@color/glass_surface_light"
+                app:chipStrokeColor="@color/glass_border"
                 app:chipStrokeWidth="1dp"
+                app:chipCornerRadius="20dp"
                 android:onClick="onQuickChip"/>
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🩹 First Aid"
-                android:textColor="#FFFFFF"
-                app:chipBackgroundColor="#1E1E2E"
-                app:chipStrokeColor="#333344"
+                android:text="First Aid"
+                android:textColor="@color/text_primary"
+                app:chipBackgroundColor="@color/glass_surface_light"
+                app:chipStrokeColor="@color/glass_border"
                 app:chipStrokeWidth="1dp"
+                app:chipCornerRadius="20dp"
                 android:layout_marginStart="6dp"
                 android:onClick="onQuickChip"/>
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🏚️ Earthquake"
-                android:textColor="#FFFFFF"
-                app:chipBackgroundColor="#1E1E2E"
-                app:chipStrokeColor="#333344"
+                android:text="Earthquake"
+                android:textColor="@color/text_primary"
+                app:chipBackgroundColor="@color/glass_surface_light"
+                app:chipStrokeColor="@color/glass_border"
                 app:chipStrokeWidth="1dp"
+                app:chipCornerRadius="20dp"
                 android:layout_marginStart="6dp"
                 android:onClick="onQuickChip"/>
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌊 Flood"
-                android:textColor="#FFFFFF"
-                app:chipBackgroundColor="#1E1E2E"
-                app:chipStrokeColor="#333344"
+                android:text="Flood"
+                android:textColor="@color/text_primary"
+                app:chipBackgroundColor="@color/glass_surface_light"
+                app:chipStrokeColor="@color/glass_border"
                 app:chipStrokeWidth="1dp"
+                app:chipCornerRadius="20dp"
                 android:layout_marginStart="6dp"
                 android:onClick="onQuickChip"/>
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔥 Fire"
-                android:textColor="#FFFFFF"
-                app:chipBackgroundColor="#1E1E2E"
-                app:chipStrokeColor="#333344"
+                android:text="Fire"
+                android:textColor="@color/text_primary"
+                app:chipBackgroundColor="@color/glass_surface_light"
+                app:chipStrokeColor="@color/glass_border"
                 app:chipStrokeWidth="1dp"
+                app:chipCornerRadius="20dp"
                 android:layout_marginStart="6dp"
                 android:onClick="onQuickChip"/>
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="❤️ CPR"
-                android:textColor="#FFFFFF"
-                app:chipBackgroundColor="#1E1E2E"
-                app:chipStrokeColor="#333344"
+                android:text="CPR"
+                android:textColor="@color/text_primary"
+                app:chipBackgroundColor="@color/glass_surface_light"
+                app:chipStrokeColor="@color/glass_border"
                 app:chipStrokeWidth="1dp"
+                app:chipCornerRadius="20dp"
                 android:layout_marginStart="6dp"
                 android:onClick="onQuickChip"/>
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🧘 Panic"
-                android:textColor="#FFFFFF"
-                app:chipBackgroundColor="#1E1E2E"
-                app:chipStrokeColor="#333344"
+                android:text="Panic"
+                android:textColor="@color/text_primary"
+                app:chipBackgroundColor="@color/glass_surface_light"
+                app:chipStrokeColor="@color/glass_border"
                 app:chipStrokeWidth="1dp"
+                app:chipCornerRadius="20dp"
                 android:layout_marginStart="6dp"
                 android:onClick="onQuickChip"/>
 
         </LinearLayout>
     </HorizontalScrollView>
 
-    <!-- Input Bar -->
+    <!-- ═══ INPUT BAR ═══ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="10dp"
-        android:background="#0D1117"
+        android:background="@drawable/bg_glass_bottom_nav"
         android:gravity="center_vertical">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_chat_input"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
-            android:hint="Ask about survival..."
-            android:textColor="#FFFFFF"
-            android:textColorHint="#555566"
-            android:background="#1E1E2E"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
+            android:hint="Ask me anything..."
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_tertiary"
+            android:background="@drawable/bg_glass_input"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:inputType="text"
             android:imeOptions="actionSend"
             android:singleLine="true"
-            android:textSize="14sp"/>
+            android:textSize="@dimen/text_body"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_send"
-            android:layout_width="56dp"
-            android:layout_height="48dp"
+            android:layout_width="50dp"
+            android:layout_height="46dp"
             android:text="➤"
             android:textSize="18sp"
             android:layout_marginStart="8dp"
-            android:backgroundTint="#00D4FF"
-            android:textColor="#000000"/>
+            android:background="@drawable/bg_glass_card_highlight"
+            android:textColor="@color/evac_accent"
+            app:backgroundTint="@null"
+            app:rippleColor="@color/evac_accent_glow"/>
     </LinearLayout>
 
 </LinearLayout>

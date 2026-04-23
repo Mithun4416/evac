@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="btn_medical">🚑 चिकित्सा आपातकाल</string>
-    <string name="btn_trapped">🆘 फंसा हुआ हूं</string>
-    <string name="btn_hazard">⚠️ खतरा</string>
-    <string name="btn_safe">✅ मैं सुरक्षित हूं</string>
+    <string name="btn_medical">चिकित्सा आपातकाल</string>
+    <string name="btn_trapped">फंसा हुआ हूं</string>
+    <string name="btn_hazard">खतरा</string>
+    <string name="btn_safe">मैं सुरक्षित हूं</string>
     <string name="phrase_need_water">मुझे पानी चाहिए</string>
     <string name="phrase_child_injured">बच्चा घायल है</string>
     <string name="phrase_building_collapsed">इमारत गिर गई</string>

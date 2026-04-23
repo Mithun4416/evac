@@ -59,7 +59,7 @@ class ResponderDashboardFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val email = auth.currentUser?.email ?: "Unknown"
-        view.findViewById<TextView>(R.id.tvResponderIdentity).text = "🛡️ RESPONDER MODE · $email"
+        view.findViewById<TextView>(R.id.tvResponderIdentity).text = "RESPONDER MODE - $email"
         tvSyncStatus = view.findViewById(R.id.tvSyncStatus)
 
         view.findViewById<ImageView>(R.id.btnLogout).setOnClickListener {
@@ -130,7 +130,7 @@ class ResponderDashboardFragment : Fragment() {
         if (myMarker == null) {
             myMarker = Marker(mapView).apply {
                 icon = ContextCompat.getDrawable(requireContext(), android.R.drawable.ic_menu_mylocation)
-                icon?.setTint(Color.parseColor("#00D4FF"))
+                icon?.setTint(Color.parseColor("#4DFFFFFF"))
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                 mapView.overlays.add(this)
             }
@@ -151,10 +151,10 @@ class ResponderDashboardFragment : Fragment() {
         db.collection("responders").document(email)
             .set(data, SetOptions.merge())
             .addOnSuccessListener {
-                tvSyncStatus.text = "📍 Auto-sync active"
+                tvSyncStatus.text = "Auto-sync active"
             }
             .addOnFailureListener {
-                tvSyncStatus.text = "⚠️ Sync failed"
+                tvSyncStatus.text = "Sync failed"
             }
     }
 
@@ -167,8 +167,8 @@ class ResponderDashboardFragment : Fragment() {
         db.collection("responders").document(email)
             .set(data, SetOptions.merge())
             .addOnSuccessListener {
-                if (tvSyncStatus.text.toString() != "📍 Auto-sync active") {
-                    tvSyncStatus.text = "🛡️ Presence Active"
+                if (tvSyncStatus.text.toString() != "Auto-sync active") {
+                    tvSyncStatus.text = "Presence Active"
                 }
             }
     }
@@ -200,17 +200,17 @@ class ResponderDashboardFragment : Fragment() {
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                     
                     val color = when (task.status) {
-                        "MEDICAL" -> Color.parseColor("#FF0040")
-                        "TRAPPED" -> Color.parseColor("#FF9500")
-                        "HAZARD" -> Color.parseColor("#FFD600")
-                        "SAFE" -> Color.parseColor("#00FF88")
+                        "MEDICAL" -> Color.parseColor("#FF3B5C")
+                        "TRAPPED" -> Color.parseColor("#FF8C42")
+                        "HAZARD" -> Color.parseColor("#FFD54F")
+                        "SAFE" -> Color.parseColor("#4ADE80")
                         else -> Color.GRAY
                     }
                     icon?.setTint(color)
                     
                     // Highlight if assigned to me
                     if (task.isAssignedToMe) {
-                        icon?.setTint(Color.parseColor("#00D4FF")) // Responder blue
+                        icon?.setTint(Color.parseColor("#FFFFFF")) // Responder active
                     }
                 }
                 mapView.overlays.add(marker)
@@ -222,24 +222,16 @@ class ResponderDashboardFragment : Fragment() {
 
     private fun navigateToTask(task: SosTask) {
         val loc = viewModel.currentLocation.value ?: return
-        tvSyncStatus.text = "Routing to task..."
+        tvSyncStatus.text = "Routing to victim..."
 
-        lifecycleScope.launch {
-            val route = OsrmRouter.getRoute(
-                fromLat = loc.latitude,
-                fromLng = loc.longitude,
-                toLat = task.lat,
-                toLng = task.lng
-            )
-
-            if (route != null) {
-                tvSyncStatus.text = "Route found: ${route.durationSeconds.toInt()/60} mins"
-                drawRoute(route.points)
-                mapView.controller.animateTo(GeoPoint(task.lat, task.lng))
-            } else {
-                tvSyncStatus.text = "Routing failed"
-                Toast.makeText(context, "Could not find road route", Toast.LENGTH_SHORT).show()
-            }
+        try {
+            val uri = android.net.Uri.parse("google.navigation:q=${task.lat},${task.lng}")
+            val mapIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
+            startActivity(mapIntent)
+        } catch (e: Exception) {
+            val webUri = android.net.Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${task.lat},${task.lng}")
+            val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, webUri)
+            startActivity(webIntent)
         }
     }
 
@@ -248,7 +240,7 @@ class ResponderDashboardFragment : Fragment() {
 
         activeRouteOverlay = Polyline().apply {
             setPoints(points)
-            color = Color.parseColor("#00D4FF")
+            color = Color.parseColor("#66FFFFFF")
             width = 8f
         }
         mapView.overlays.add(activeRouteOverlay)
