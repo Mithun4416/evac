@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,6 +27,9 @@ import com.evac.app.util.Phrases
 import com.evac.app.util.ProximityAlertManager
 import com.evac.app.util.AcousticBeacon
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.material.button.MaterialButton
@@ -39,6 +43,7 @@ class CitizenFragment : Fragment() {
 
     private val viewModel: CitizenViewModel by viewModels()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
     private var currentLocation: Location? = null
     private var peopleCount = 1
 
@@ -71,7 +76,13 @@ class CitizenFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        grabLocation()
+        
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(p0: LocationResult) {
+                p0.lastLocation?.let { currentLocation = it }
+            }
+        }
+        startLocationUpdates()
         
         // ── Proximity banner wiring ────────────────────────────────────────────
         proximityBanner = view.findViewById(R.id.proximityBanner)
@@ -154,6 +165,11 @@ class CitizenFragment : Fragment() {
         requireContext().unregisterReceiver(proximityReceiver)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
     // ── Show/hide proximity banner ─────────────────────────────────────────────
 
     private fun showProximityBanner(distanceM: Float, status: String, people: Int) {
@@ -178,7 +194,6 @@ class CitizenFragment : Fragment() {
     // ── SOS submission ─────────────────────────────────────────────────────────
 
     private fun sendSos(status: String, etNote: EditText, tvStatus: TextView) {
-        grabLocation() // Refresh location
         if (!viewModel.canSendSos(status)) {
             Toast.makeText(
                 requireContext(),
@@ -199,7 +214,7 @@ class CitizenFragment : Fragment() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun grabLocation() {
+    private fun startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
@@ -210,9 +225,14 @@ class CitizenFragment : Fragment() {
             )
             return
         }
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY, 3000
+        ).build()
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
             .addOnSuccessListener { loc ->
-                currentLocation = loc
+                if (loc != null) currentLocation = loc
             }
     }
 }

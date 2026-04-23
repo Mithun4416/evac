@@ -372,6 +372,10 @@ function refreshUi() {
                     const div = document.createElement('div');
                     div.className = `sos-card status-${(sos.status || 'UNKNOWN').toUpperCase()}`;
                     div.onclick = () => {
+                        // Auto-fill ACK target device ID and switch tab
+                        document.getElementById('ackDeviceId').value = sos.deviceId;
+                        switchTab('ack-tab');
+
                         if (sos.lat && sos.lng && map) {
                             map.flyTo([sos.lat, sos.lng], 17, { animate: true, duration: 1.5 });
                             if (markers[sos.deviceId]) markers[sos.deviceId].openPopup();
@@ -395,9 +399,8 @@ function refreshUi() {
                                 <span style="font-size:9px; color:#6a7090;">${relTime}</span>
                             </span>
                         </div>
-                        <div style="font-size: 10px; color: #ffffff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all; display:flex; align-items:flex-start; gap:6px;">
-                            <span style="flex:1;">ID: ${sos.deviceId}</span>
-                            <button class="copy-btn" title="Copy Device ID" onclick="navigator.clipboard.writeText('${sos.deviceId}').then(() => { this.style.color='#00ff88'; setTimeout(()=>this.style.color='', 1000); }); event.stopPropagation();" style="background:transparent; border:none; color:var(--text-dim); cursor:pointer; font-size:12px; padding:2px;">📋</button>
+                        <div style="font-size: 10px; color: #ffffff; font-family: var(--mono); margin-bottom: 6px; word-break: break-all;">
+                            ID: ${sos.deviceId}
                         </div>
                         <div class="sos-meta">
                             <span>👥 ${sos.people_count || sos.peopleCount || 1}</span>
@@ -833,7 +836,6 @@ function renderSafeSpots() {
                     ${s.type} · [${s.latitude.toFixed(4)}, ${s.longitude.toFixed(4)}]
                 </div>
             </div>
-            <button onclick="removeSafeSpot('${s.id}')" style="background:none; border:none; padding:4px; font-size:14px; cursor:pointer;" title="Delete">🗑️</button>
         </div>
     `).join('');
 }
